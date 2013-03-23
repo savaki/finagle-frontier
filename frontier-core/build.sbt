@@ -1,6 +1,6 @@
-name := "finagle-proxy"
+name := "frontier-core"
 
-organization := "com.github.savaki"
+organization := "ws.frontier"
 
 version := "0.1-SNAPSHOT"
 
