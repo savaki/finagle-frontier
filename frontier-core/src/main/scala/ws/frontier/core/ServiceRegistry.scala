@@ -1,4 +1,4 @@
-package com.github.savaki.finagle.proxy
+package ws.frontier.core
 
 import com.twitter.finagle.http.Http
 import com.twitter.util.Future
