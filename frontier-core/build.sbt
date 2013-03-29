@@ -19,8 +19,3 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
     )
 }
 
-{
-    libraryDependencies ++= Seq(
-        "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
-    )
-}

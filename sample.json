@@ -1,0 +1,40 @@
+{
+  "territories": [
+    {
+      "locations": [ "*.png", "*.gif", "/resource/:id/*" ],
+      "filters": [
+        {
+          "type": "rewrite",
+          "regex": "/resources/abc/(.*)",
+          "format": "/do/something/new$1"
+        }
+      ],
+      "allows": "authenticated",
+      "groups": [
+        {
+          "release-152": {
+            "hosts": ["10.0.1.10:80", "10.0.1.11:80"],
+            "allows": [
+              {
+                "type": "foo",
+                "header": "argle"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "locations": ["/login/*"],
+      "login": true,
+      "groups": [
+        {
+          "default": {
+            "class": "ws.frontier.auth.Login"
+          }
+        }
+      ]
+    }
+  ],
+  "tags": [ "production" ]
+}
