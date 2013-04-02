@@ -17,6 +17,13 @@ class PluginConfigDeserializerTest extends TestSuite {
         |  "class": "ws.frontier.plugin.SampleFilter"
         |}
       """.stripMargin
-    FrontierMapper.readValue[PluginConfig](json)
+    FrontierMapper.readValue(json, classOf[PluginConfig])
+  }
+
+  it should "deserialize array instances" in {
+    val json = "[]"
+    val configs: Array[PluginConfig] = FrontierMapper.readValue(json, classOf[Array[PluginConfig]])
+    configs should not(be(null))
+    configs.length should be(0)
   }
 }

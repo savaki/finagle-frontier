@@ -8,13 +8,13 @@ import com.fasterxml.jackson.core.JsonParser
  * @author matt
  */
 
-class TerritoryConfigDeserializer extends JsonDeserializer[Array[TerritoryConfig]] with Deserializer[TerritoryConfig] {
-  def deserialize(parser: JsonParser, context: DeserializationContext): Array[TerritoryConfig] = {
+class TerritoryConfigDeserializer extends JsonDeserializer[TerritoryConfig] with Deserializer[TerritoryConfig] {
+  def deserialize(parser: JsonParser, context: DeserializationContext): TerritoryConfig = {
     println("TerritoryConfigDeserializer#deserialize")
-    readNode(parser.readValueAsTree())
+    readNode(parser.readValueAsTree()).head
   }
 
-  protected def readValue(node: JsonNode) = {
+  protected def readValue(node: JsonNode): TerritoryConfig = {
     null
   }
 }

@@ -1,14 +1,14 @@
 package ws.frontier.core.config
 
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.databind.ObjectMapper
 import converters.{PluginConfigDeserializer, TerritoryConfigDeserializer, FrontierConfigDeserializer}
-import java.io.File
+import com.fasterxml.jackson.databind.module.SimpleModule
 
 /**
  * @author matt
  */
 
-object FrontierMapper {
+class FrontierMapper extends ObjectMapper {
 
   private[this] val plugin: PluginConfigDeserializer = new PluginConfigDeserializer
 
@@ -16,33 +16,15 @@ object FrontierMapper {
 
   private[this] val frontier: FrontierConfigDeserializer = new FrontierConfigDeserializer(plugin, territory)
 
-  private[this] val mapper = new ObjectMapper()
-
-  def readValue[T](content: String)(implicit t: Manifest[T]): T = {
-    val node: JsonNode = mapper.readTree(content)
-    readNode(node)(t)
+  private[this] val module = {
+    val m = new SimpleModule
+    m.addDeserializer(classOf[FrontierConfig], frontier)
+    m.addDeserializer(classOf[TerritoryConfig], territory)
+    m.addDeserializer(classOf[PluginConfig], plugin)
+    m
   }
 
-  def readValue[T](file: File)(implicit t: Manifest[T]): T = {
-    val node: JsonNode = mapper.readTree(file)
-    readNode(node)(t)
-  }
-
-  private def readNode[T](node: JsonNode)(implicit t: Manifest[T]): T = {
-    if (t.erasure == classOf[FrontierConfig]) {
-      frontier.readNode(node).head.asInstanceOf[T]
-
-    } else if (t.erasure == classOf[Array[FrontierConfig]]) {
-      frontier.readNode(node).head.asInstanceOf[T]
-
-    } else if (t.erasure == classOf[PluginConfig]) {
-      plugin.readNode(node).head.asInstanceOf[T]
-
-    } else if (t.erasure == classOf[Array[PluginConfig]]) {
-      plugin.readNode(node).head.asInstanceOf[T]
-
-    } else {
-      throw new UnsupportedOperationException("#readValue - unhandled type, %s" format t.erasure.getCanonicalName)
-    }
-  }
+  registerModule(module)
 }
+
+object FrontierMapper extends FrontierMapper
