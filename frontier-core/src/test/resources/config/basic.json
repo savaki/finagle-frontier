@@ -1,0 +1,21 @@
+{
+  "plugins": [
+    {
+      "name": "proxy",
+      "kind": "service",
+      "class": "ws.frontier.core.plugin.ServiceProxy"
+    }
+  ],
+  "territories": [
+    {
+      "locations": ["/blog/*"],
+      "service": "proxy",
+      "hosts": ["blog.loyal3.com:80"]
+    },
+    {
+      "service": "proxy",
+      "host": "www.loyal3.com:80"
+    }
+  ]
+}
+

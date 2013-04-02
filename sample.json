@@ -1,16 +1,37 @@
 {
+  "plugins": [
+    {
+      "name": "sample-filter",
+      "kind": "filter",
+      "class": "ws.frontier.plugin.SampleFilter",
+      "params": {
+        "key": "value"
+      }
+    }
+  ],
+
+  "include": [
+    "foo/bar",
+    "${home}/additional.json"
+  ],
+
   "territories": [
     {
       "locations": [ "*.png", "*.gif", "/resource/:id/*" ],
       "filters": [
         {
-          "type": "rewrite",
+          "name": "rewrite",
           "regex": "/resources/abc/(.*)",
           "format": "/do/something/new$1"
         }
       ],
+      "layouts": [
+        {
+          "name": "generic-website"
+        }
+      ],
       "allows": "authenticated",
-      "groups": [
+      "services": [
         {
           "release-152": {
             "hosts": ["10.0.1.10:80", "10.0.1.11:80"],

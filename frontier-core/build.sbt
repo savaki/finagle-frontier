@@ -19,3 +19,9 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
     )
 }
 
+{
+  val jacksonVersion = "2.1.4"
+  libraryDependencies ++= Seq(
+    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion withSources()
+  )
+}
