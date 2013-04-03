@@ -4,7 +4,7 @@ organization := "ws.frontier"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.10.1"
 
 resolvers += "Twitter Repo" at "http://maven.twttr.com"
 

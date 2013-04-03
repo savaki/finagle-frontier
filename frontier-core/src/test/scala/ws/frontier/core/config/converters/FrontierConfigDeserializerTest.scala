@@ -11,7 +11,7 @@ import java.io.File
 class FrontierConfigDeserializerTest extends TestSuite {
   "#deserialize" should "parse frontier config" in {
     val file: File = new File("frontier-core/src/test/resources/config/basic.json")
-    val config: FrontierConfig = FrontierMapper.readValue(file, classOf[FrontierConfig])
+    val config: FrontierConfig = FrontierMapper.readValue[FrontierConfig](file)
     config should not(be(null))
   }
 }
