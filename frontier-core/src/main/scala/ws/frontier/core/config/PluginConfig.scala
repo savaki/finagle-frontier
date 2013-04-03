@@ -1,13 +1,14 @@
 package ws.frontier.core.config
 
 import ws.frontier.core.Plugin
+import ws.frontier.core.Kind
 import ws.frontier.core.util.Logging
 
 /**
  * @author matt
  */
 
-case class PluginConfig(name: String, kind: String, klass: String, params: Map[String, String] = Map()) extends Validating with Logging {
+case class PluginConfig(name: String, kind: Kind, klass: String, params: Map[String, String] = Map()) extends Validating with Logging {
   private[this] var errors: Array[ValidationError] = Array()
 
   private[this] val plugin: Option[Plugin[_, _]] = {

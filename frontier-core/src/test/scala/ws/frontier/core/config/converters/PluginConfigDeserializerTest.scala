@@ -2,6 +2,7 @@ package ws.frontier.core.config.converters
 
 import ws.frontier.test.TestSuite
 import ws.frontier.core.config.{PluginConfig, FrontierMapper}
+import ws.frontier.core.Kind
 
 /**
  * @author matt
@@ -30,7 +31,7 @@ class PluginConfigDeserializerTest extends TestSuite {
     val config: PluginConfig = FrontierMapper.readValue[PluginConfig](valid)
     config should not(be(null))
     config.name should be("sample-filter")
-    config.kind should be("filter")
+    config.kind should be(Kind.filter)
     config.klass should be("ws.frontier.core.plugin.SampleFilter")
   }
 
@@ -44,5 +45,17 @@ class PluginConfigDeserializerTest extends TestSuite {
   "#validate" should "ensure the class exists" in {
     val config: PluginConfig = FrontierMapper.readValue[PluginConfig](valid)
     config.validate().isEmpty should be(true)
+  }
+
+  it should "assign the name and kind values" in {
+    val config: PluginConfig = FrontierMapper.readValue[PluginConfig](valid)
+    config.kind should be(Kind.filter)
+    config.name should be("sample-filter")
+  }
+
+  it should "raise ValidationError if class doesn't exist" in {
+    val config: PluginConfig = FrontierMapper.readValue[PluginConfig](invalidKlass)
+    config.validate().isEmpty should be(false)
+    config.validate().length should be(1)
   }
 }

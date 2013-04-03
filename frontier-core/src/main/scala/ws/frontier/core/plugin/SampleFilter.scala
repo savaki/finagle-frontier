@@ -15,7 +15,6 @@ class SampleFilter[IN, OUT] extends Plugin[IN, OUT] {
    * @param config the configuration to verify
    */
   def validate(config: PluginConfig) = {
-    println("validating")
     Array()
   }
 

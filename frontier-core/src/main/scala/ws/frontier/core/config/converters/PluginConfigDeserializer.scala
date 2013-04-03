@@ -3,6 +3,7 @@ package ws.frontier.core.config.converters
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
 import ws.frontier.core.config.PluginConfig
 import com.fasterxml.jackson.core.JsonParser
+import ws.frontier.core.Kind
 
 /**
  * @author matt
@@ -11,7 +12,7 @@ import com.fasterxml.jackson.core.JsonParser
 class PluginConfigDeserializer extends JsonDeserializer[PluginConfig] with Deserializer[PluginConfig] {
   protected def readValue(node: JsonNode): PluginConfig = {
     val name = node.get("name").textValue()
-    val kind = node.get("kind").textValue()
+    val kind = Kind.valueOf(node.get("kind").textValue())
     val klass = node.get("class").textValue()
     PluginConfig(name, kind, klass)
   }
