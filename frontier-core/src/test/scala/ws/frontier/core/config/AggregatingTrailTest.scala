@@ -2,6 +2,7 @@ package ws.frontier.core.config
 
 import ws.frontier.test.TestSuite
 import com.twitter.util.Future
+import ws.frontier.core.{AggregatingTrail, Trail}
 
 /**
  * @author matt

@@ -1,9 +1,9 @@
 {
   "plugins": [
     {
-      "name": "proxy",
       "kind": "service",
-      "class": "ws.frontier.core.plugin.ServiceProxy"
+      "name": "proxy",
+      "class": "ws.frontier.core.plugin.ProxyServiceFactory"
     }
   ],
   "territories": [

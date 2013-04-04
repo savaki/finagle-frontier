@@ -1,4 +1,4 @@
-package ws.frontier.core.config
+package ws.frontier.core
 
 import com.twitter.util.Future
 
@@ -45,7 +45,7 @@ class RoutingTrail[IN, OUT](router: Router, trails: Trail[IN, OUT]*) extends Tra
    * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
    */
   def apply(request: IN): Option[Future[OUT]] = {
-    //
+    null
   }
 }
 
