@@ -1,6 +1,7 @@
-package ws.frontier.core.plugin
+package ws.frontier.core.converter
 
 import ws.frontier.test.TestSuite
+import ws.frontier.core.converter.PluginRegistry
 
 /**
  * @author matt.ho@gmail.com

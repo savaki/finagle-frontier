@@ -1,10 +1,9 @@
-package ws.frontier.core.config
+package ws.frontier.core.converter
 
-import com.fasterxml.jackson.databind.{ObjectReader, ObjectMapper}
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.File
 import java.net.URL
-import ws.frontier.core.trail.converter.TrailConverter
 import ws.frontier.core.Trail
 
 /**
@@ -12,7 +11,7 @@ import ws.frontier.core.Trail
  */
 
 class FrontierMapper {
-  private[config] val trail: TrailConverter = new TrailConverter
+  private[converter] val trail: TrailConverter = new TrailConverter
 
   private[this] val mapper = {
     val m = new ObjectMapper

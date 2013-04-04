@@ -1,10 +1,10 @@
-package ws.frontier.core.plugin
+package ws.frontier.core.converter
 
-import java.util
 import java.io.{InputStream, FileInputStream, File}
-import util.Properties
-import scala.collection.JavaConversions._
 import java.net.URL
+import java.util
+import scala.collection.JavaConversions._
+import util.Properties
 import ws.frontier.core.{HttpProxyTrail, AggregatingTrail}
 
 /**
