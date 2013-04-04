@@ -1,0 +1,16 @@
+{
+  "territory": {
+    "port": 9080,
+    "trails": [
+      {
+        "locations": ["/blog/*"],
+        "hosts": ["www.loyal3.com:80"],
+        "tags": ["r192"]
+      },
+      {
+        "hosts": ["www.loyal3.com:80"],
+        "tags": ["r194"]
+      }
+    ]
+  }
+}

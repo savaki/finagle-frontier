@@ -1,26 +1,26 @@
-package ws.frontier.core.config
+package ws.frontier.core
 
 import ws.frontier.test.TestSuite
 import com.twitter.util.Future
-import ws.frontier.core.{AggregatingTrail, Trail}
+import ws.frontier.core.AggregatingTrail
 
 /**
  * @author matt
  */
 
 class AggregatingTrailTest extends TestSuite {
-  val good = new Trail[String, String] {
-    def apply(request: String) = Some(Future.value(request))
+  val good = new EchoTrail[String] {
+    override def apply(request: String) = Some(Future.value(request))
   }
 
-  val exceptional = new Trail[String, String] {
-    def apply(request: String) = throw new RuntimeException
+  val exceptional = new EchoTrail[String] {
+    override def apply(request: String) = throw new RuntimeException
   }
 
   "#apply" should "continue trying trails until a match is found (e.g. Some returned)" in {
     var noMatchCalled = false
-    val noMatch = new Trail[String, String] {
-      def apply(request: String) = {
+    val noMatch = new EchoTrail[String] {
+      override def apply(request: String) = {
         noMatchCalled = true
         None
       }

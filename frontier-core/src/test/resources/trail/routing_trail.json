@@ -1,0 +1,18 @@
+{
+  "territory": {
+    "port": 9080,
+    "trails": {
+      "kind": "simple-router",
+      "trails": [
+        {
+          "hosts": ["www-1.loyal3.com:80"],
+          "tags": ["r192"]
+        },
+        {
+          "hosts": ["www-2.loyal3.com:80"],
+          "tags": ["r194"]
+        }
+      ]
+    }
+  }
+}

@@ -1,30 +1,24 @@
 package ws.frontier.core.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import converters.{PluginConfigDeserializer, TerritoryConfigDeserializer, FrontierConfigDeserializer}
+import com.fasterxml.jackson.databind.{ObjectReader, ObjectMapper}
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.File
 import java.net.URL
+import ws.frontier.core.trail.converter.TrailConverter
+import ws.frontier.core.Trail
 
 /**
  * @author matt
  */
 
 class FrontierMapper {
-
-  private[config] val plugin: PluginConfigDeserializer = new PluginConfigDeserializer
-
-  private[config] val territory: TerritoryConfigDeserializer = new TerritoryConfigDeserializer
-
-  private[config] val frontier: FrontierConfigDeserializer = new FrontierConfigDeserializer(plugin, territory)
+  private[config] val trail: TrailConverter = new TrailConverter
 
   private[this] val mapper = {
     val m = new ObjectMapper
 
     val module = new SimpleModule
-    module.addDeserializer(classOf[FrontierConfig], frontier)
-    module.addDeserializer(classOf[TerritoryConfig], territory)
-    module.addDeserializer(classOf[PluginConfig], plugin)
+    module.addDeserializer(classOf[Trail[_, _]], trail)
     m.registerModule(module)
 
     m

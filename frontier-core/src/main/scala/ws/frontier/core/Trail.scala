@@ -1,6 +1,7 @@
 package ws.frontier.core
 
 import com.twitter.util.Future
+import beans.BeanProperty
 
 /**
  * Trails represent conditional executions of Finagle services.  Unlike a Finagle service which _must_ process calls to
@@ -13,6 +14,18 @@ abstract class Trail[IN, OUT] {
    * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
    */
   def apply(request: IN): Option[Future[OUT]]
+
+  @BeanProperty
+  var tags: Array[String] = null
+
+  /**
+   * @return a future that allows us to mark when initialization is complete
+   */
+  def initialize(): Future[Unit] = Future()
+
+  def start(): Future[Unit]
+
+  def shutdown(): Future[Unit]
 }
 
 /**
@@ -21,7 +34,7 @@ abstract class Trail[IN, OUT] {
  *
  * @param trails the universe of potential options to choose from
  */
-class AggregatingTrail[IN, OUT](trails: Trail[IN, OUT]*) extends Trail[IN, OUT] {
+class AggregatingTrail[IN, OUT](val trails: Trail[IN, OUT]*) extends Trail[IN, OUT] {
   def apply(request: IN): Option[Future[OUT]] = {
     var index = 0
     while (index < trails.length) {
@@ -34,21 +47,22 @@ class AggregatingTrail[IN, OUT](trails: Trail[IN, OUT]*) extends Trail[IN, OUT] 
 
     None
   }
-}
 
-abstract class RoutableTrail[IN, OUT] extends Trail[IN, OUT] {
-  def routingInfo: RoutingInfo
-}
+  override def start(): Future[Unit] = {
+    Future.join {
+      trails.map(_.start())
+    }
+  }
 
-class RoutingTrail[IN, OUT](router: Router, trails: Trail[IN, OUT]*) extends Trail[IN, OUT] {
-  /**
-   * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
-   */
-  def apply(request: IN): Option[Future[OUT]] = {
-    null
+  override def shutdown(): Future[Unit] = {
+    Future.join {
+      trails.map(_.start())
+    }
   }
 }
 
-trait RoutingInfo
+case class TrailGuide[IN, OUT](trail: Trail[IN, OUT], params: Map[String, String])
 
-trait Router
+abstract class RoutingTrail[IN, OUT](guides: TrailGuide[IN, OUT]*) extends Trail[IN, OUT] {
+
+}
