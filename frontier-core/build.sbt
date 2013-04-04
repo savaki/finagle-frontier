@@ -11,11 +11,11 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
 {
     val finagleVersion = "6.2.0"
     libraryDependencies ++= Seq(
-        "com.twitter" % "finagle-core_2.10" % finagleVersion % "provided" withSources(),
-        "com.twitter" % "finagle-native_2.10" % finagleVersion % "provided" withSources(),
-        "com.twitter" % "finagle-redis_2.10" % finagleVersion % "provided" withSources(),
-        "com.twitter" % "finagle-serversets_2.10" % finagleVersion % "provided" withSources(),
-        "com.twitter" % "finagle-http_2.10" % finagleVersion % "provided" withSources()
+        "com.twitter" %% "finagle-core" % finagleVersion withSources(),
+        "com.twitter" %% "finagle-native" % finagleVersion withSources(),
+        "com.twitter" %% "finagle-redis" % finagleVersion withSources(),
+        "com.twitter" %% "finagle-serversets" % finagleVersion withSources(),
+        "com.twitter" %% "finagle-http" % finagleVersion withSources()
     )
 }
 
