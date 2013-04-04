@@ -1,10 +1,9 @@
 package ws.frontier.core
 
-import ws.frontier.test.TestSuite
 import com.twitter.finagle.http.{Response, Request}
 import com.twitter.util.Future
 import scala.collection.JavaConverters._
-import ws.frontier.core.HttpProxyTrail
+import ws.frontier.test.TestSuite
 
 /**
  * @author matt.ho@gmail.com
