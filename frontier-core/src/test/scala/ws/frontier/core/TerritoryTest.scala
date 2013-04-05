@@ -13,10 +13,20 @@ class TerritoryTest extends TestSuite {
       """
         |{
         | "port": 8000,
-        | "trails": []
+        | "trails": [
+        |   {
+        |     "locations":["/bugs/*"]
+        |   }
+        | ]
+        | }
         |}
       """.stripMargin
     val territory: Territory[Request, Response] = FrontierMapper.readValue[Territory[Request, Response]](json)
     territory should not(be(null))
+    territory.port should be(8000)
+    territory.trails should not(be(null))
+    territory.trails.length should be(1)
+    val proxy: HttpProxyTrail = territory.trails.head.asInstanceOf[HttpProxyTrail]
+    proxy.locations should be(Array("/bugs/*"))
   }
 }
