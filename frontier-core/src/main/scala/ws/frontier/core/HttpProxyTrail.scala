@@ -92,6 +92,18 @@ class HttpProxyTrail extends Trail[Request, Response] {
 
   private[this] var matchers: Array[Pattern] = null
 
+
+  def validate(): List[ValidationError] = {
+    var errors: List[ValidationError] = Nil
+
+    if (timeout <= 0) errors ::= ValidationError("timeout", "invalid_value", "timeout may not be <= 0")
+    if (tcpConnectTimeout <= 0) errors ::= ValidationError("tcpConnectTimeout", "invalid_value", "tcpConnectTimeout may not be <= 0")
+    if (hostConnectionLimit <= 0) errors ::= ValidationError("hostConnectionLimit", "invalid_value", "hostConnectionLimit may not be < 0")
+    if (hosts == null || hosts.length == 0) errors ::= ValidationError("hosts", "invalid_value", "hosts may not be < 0")
+
+    errors
+  }
+
   /**
    * @return a future that allows us to mark when initialization is complete
    */
@@ -110,8 +122,12 @@ class HttpProxyTrail extends Trail[Request, Response] {
     }
 
     // assign this.host if it wasn't already set
-    if (host == null && hosts != null && hosts.length > 0) {
-      host = hosts(0)
+    if (host == null) {
+      if (hosts != null && hosts.length > 0) {
+        host = hosts(0)
+      } else {
+        throw new RuntimeException("no hosts value provided!")
+      }
     }
   }
 

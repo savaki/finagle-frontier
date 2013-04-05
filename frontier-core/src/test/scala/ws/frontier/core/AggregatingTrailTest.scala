@@ -1,8 +1,7 @@
 package ws.frontier.core
 
-import ws.frontier.test.TestSuite
 import com.twitter.util.Future
-import ws.frontier.core.AggregatingTrail
+import ws.frontier.test.TestSuite
 
 /**
  * @author matt

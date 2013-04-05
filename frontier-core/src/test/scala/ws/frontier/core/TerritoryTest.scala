@@ -2,7 +2,9 @@ package ws.frontier.core
 
 import converter.FrontierMapper
 import ws.frontier.test.TestSuite
-import com.twitter.finagle.http.{Request, Response}
+import com.twitter.finagle.http.{RichHttp, Http, Request, Response}
+import com.twitter.finagle.builder.ClientBuilder
+import com.twitter.conversions.time._
 
 /**
  * @author matt.ho@gmail.com
@@ -13,7 +15,7 @@ class TerritoryTest extends TestSuite {
       """
         |{
         | "port": 8000,
-        | "trails": [
+        | "trail": [
         |   {
         |     "locations":["/bugs/*"]
         |   }
@@ -24,9 +26,43 @@ class TerritoryTest extends TestSuite {
     val territory: Territory[Request, Response] = FrontierMapper.readValue[Territory[Request, Response]](json)
     territory should not(be(null))
     territory.port should be(8000)
-    territory.trails should not(be(null))
-    territory.trails.length should be(1)
-    val proxy: HttpProxyTrail = territory.trails.head.asInstanceOf[HttpProxyTrail]
+    territory.trail should not(be(null))
+    territory.trail.isInstanceOf[AggregatingTrail[Request, Response]] should be(true)
+
+    val trails: Seq[Trail[Request, Response]] = territory.trail.asInstanceOf[AggregatingTrail[Request, Response]].trails
+    trails.length should be(1)
+
+    val proxy: HttpProxyTrail = trails.head.asInstanceOf[HttpProxyTrail]
     proxy.locations should be(Array("/bugs/*"))
+  }
+
+  "#start/#shutdown" should "start a territory" in {
+    val json =
+      """
+        |{
+        | "port": 8000,
+        | "trail": [
+        |   {
+        |     "hosts": ["www.loyal3.com:80"]
+        |   }
+        | ]
+        | }
+        |}
+      """.stripMargin
+    val territory: Territory[Request, Response] = FrontierMapper.readValue[Territory[Request, Response]](json)
+    val client = ClientBuilder()
+      .codec(RichHttp[Request](Http()))
+      .hosts("localhost:%s" format territory.port)
+      .connectTimeout(10.seconds)
+      .hostConnectionLimit(64)
+      .tcpConnectTimeout(10.seconds)
+      .build()
+
+    territory.validate()
+    territory.initialize().get()
+    territory.start().get()
+    val response: Response = client(Request("/")).get()
+    response.statusCode should be(200)
+    territory.shutdown().get()
   }
 }

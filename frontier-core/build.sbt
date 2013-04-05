@@ -25,3 +25,10 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
     "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion withSources()
   )
 }
+
+{
+  val hibernateValidator = "4.3.1.Final"
+  libraryDependencies ++= Seq(
+    "org.hibernate" % "hibernate-validator" % hibernateValidator withSources()
+  )
+}

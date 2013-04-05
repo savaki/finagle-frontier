@@ -18,6 +18,8 @@ abstract class Trail[IN, OUT] {
   @BeanProperty
   var tags: Array[String] = null
 
+  def validate(): List[ValidationError]
+
   /**
    * @return a future that allows us to mark when initialization is complete
    */
@@ -46,6 +48,16 @@ class AggregatingTrail[IN, OUT](val trails: Trail[IN, OUT]*) extends Trail[IN, O
     }
 
     None
+  }
+
+  def validate() :List[ValidationError] = {
+    trails.flatMap(_.validate()).toList
+  }
+
+  override def initialize(): Future[Unit] = {
+    Future.join {
+      trails.map(_.initialize())
+    }
   }
 
   override def start(): Future[Unit] = {

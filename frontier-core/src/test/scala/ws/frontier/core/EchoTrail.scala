@@ -1,7 +1,6 @@
 package ws.frontier.core
 
 import com.twitter.util.Future
-import ws.frontier.core.Trail
 
 /**
  * EchoTrail is a simple trail that echoes back what's sent to it.  Suitable for testing.
@@ -19,6 +18,8 @@ class EchoTrail[T] extends Trail[T, T] {
       Option(Future.value(request))
     }
   }
+
+  def validate(): List[ValidationError] = Nil
 
   def start(): Future[Unit] = Future()
 
