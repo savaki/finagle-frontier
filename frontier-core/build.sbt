@@ -26,9 +26,3 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
   )
 }
 
-{
-  val hibernateValidator = "4.3.1.Final"
-  libraryDependencies ++= Seq(
-    "org.hibernate" % "hibernate-validator" % hibernateValidator withSources()
-  )
-}

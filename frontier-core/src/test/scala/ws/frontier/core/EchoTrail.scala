@@ -19,8 +19,6 @@ class EchoTrail[T] extends Trail[T, T] {
     }
   }
 
-  def validate(): List[ValidationError] = Nil
-
   def start(): Future[Unit] = Future()
 
   def shutdown(): Future[Unit] = Future()

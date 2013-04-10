@@ -26,7 +26,7 @@ class AggregatingTrailTest extends TestSuite {
     }
 
     val expected: String = "hello world"
-    val aggregator = new AggregatingTrail(noMatch, good)
+    val aggregator = AggregatingTrail(noMatch, good)
     val result: Option[Future[String]] = aggregator(expected)
     result.isDefined should be(true)
     result.get.get() should be(expected)
@@ -34,7 +34,7 @@ class AggregatingTrailTest extends TestSuite {
   }
 
   it should "not continue once a match has been found" in {
-    val aggregator = new AggregatingTrail(good, exceptional)
+    val aggregator = AggregatingTrail(good, exceptional)
     aggregator("hello world").isDefined should be(true)
   }
 }

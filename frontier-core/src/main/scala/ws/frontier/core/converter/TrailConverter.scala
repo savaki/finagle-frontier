@@ -17,8 +17,8 @@ class TrailConverter extends JsonDeserializer[Trail[_, _]] {
 
    def deserialize[IN, OUT](mapper: ObjectMapper, node: JsonNode): Trail[IN, OUT] = {
      if (node.isArray) {
-       val trails = node.iterator().map(deserialize[IN, OUT](mapper, _)).toSeq
-       new AggregatingTrail[IN, OUT](trails: _*)
+       val trails = node.iterator().map(deserialize[IN, OUT](mapper, _)).toArray
+       new AggregatingTrail[IN, OUT](trails)
 
      } else {
        val reader: ObjectReader = mapper.reader(classOf[HttpProxyTrail])

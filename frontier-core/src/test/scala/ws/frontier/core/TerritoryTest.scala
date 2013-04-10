@@ -5,6 +5,7 @@ import ws.frontier.test.TestSuite
 import com.twitter.finagle.http.{RichHttp, Http, Request, Response}
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.conversions.time._
+import javax.validation.ConstraintViolationException
 
 /**
  * @author matt.ho@gmail.com
@@ -41,9 +42,10 @@ class TerritoryTest extends TestSuite {
       """
         |{
         | "port": 8000,
+        | "name": "home",
         | "trail": [
         |   {
-        |     "hosts": ["www.loyal3.com:80"]
+        |     "hosts": ["www.github.com:80"]
         |   }
         | ]
         | }
@@ -62,7 +64,26 @@ class TerritoryTest extends TestSuite {
     territory.initialize().get()
     territory.start().get()
     val response: Response = client(Request("/")).get()
-    response.statusCode should be(200)
+    response.statusCode should be(301)
     territory.shutdown().get()
+  }
+
+  "#validate" should "validate dependent objects" in {
+    val json =
+      """
+        |{
+        | "port": 8000,
+        | "name": "home",
+        | "trail": [
+        |   {
+        |   }
+        | ]
+        | }
+        |}
+      """.stripMargin
+    val territory: Territory[Request, Response] = FrontierMapper.readValue[Territory[Request, Response]](json)
+    evaluating {
+      territory.validate()
+    } should produce[ConstraintViolationException] // HttpProxyTrail is missing lots of stuff
   }
 }

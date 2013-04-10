@@ -2,6 +2,7 @@ package ws.frontier.core
 
 import com.twitter.util.Future
 import beans.BeanProperty
+import javax.validation.{Valid, ConstraintViolation}
 
 /**
  * Trails represent conditional executions of Finagle services.  Unlike a Finagle service which _must_ process calls to
@@ -17,8 +18,6 @@ abstract class Trail[IN, OUT] {
 
   @BeanProperty
   var tags: Array[String] = null
-
-  def validate(): List[ValidationError]
 
   /**
    * @return a future that allows us to mark when initialization is complete
@@ -36,7 +35,7 @@ abstract class Trail[IN, OUT] {
  *
  * @param trails the universe of potential options to choose from
  */
-class AggregatingTrail[IN, OUT](val trails: Trail[IN, OUT]*) extends Trail[IN, OUT] {
+class AggregatingTrail[IN, OUT](@Valid @BeanProperty val trails: Array[Trail[IN, OUT]]) extends Trail[IN, OUT] {
   def apply(request: IN): Option[Future[OUT]] = {
     var index = 0
     while (index < trails.length) {
@@ -48,10 +47,6 @@ class AggregatingTrail[IN, OUT](val trails: Trail[IN, OUT]*) extends Trail[IN, O
     }
 
     None
-  }
-
-  def validate() :List[ValidationError] = {
-    trails.flatMap(_.validate()).toList
   }
 
   override def initialize(): Future[Unit] = {
@@ -70,6 +65,12 @@ class AggregatingTrail[IN, OUT](val trails: Trail[IN, OUT]*) extends Trail[IN, O
     Future.join {
       trails.map(_.start())
     }
+  }
+}
+
+object AggregatingTrail {
+  def apply[IN, OUT](trails: Trail[IN, OUT]*): AggregatingTrail[IN, OUT] = {
+    new AggregatingTrail[IN, OUT](trails.toArray)
   }
 }
 

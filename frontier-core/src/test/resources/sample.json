@@ -1,0 +1,19 @@
+{
+  "territories": [
+    {
+      "port": 9080,
+      "trail": [
+        {
+          "locations": ["/signup/*"],
+          "hosts": ["csop.loyal3.com:443"],
+          "enable_tls": true,
+          "tags": ["r192"]
+        },
+        {
+          "hosts": ["www.loyal3.com:80"],
+          "tags": ["r194"]
+        }
+      ]
+    }
+  ]
+}

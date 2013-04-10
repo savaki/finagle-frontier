@@ -7,6 +7,8 @@ import com.twitter.finagle.Service
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.conversions.time._
 import java.util.regex.Pattern
+import javax.validation.constraints.NotNull
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * @author matt.ho@gmail.com
@@ -49,6 +51,7 @@ class HttpProxyTrail extends Trail[Request, Response] {
   /**
    * [REQUIRED] the array of hosts to connect to in the format hostname:port
    */
+  @NotNull
   @BeanProperty
   var hosts: Array[String] = null
 
@@ -70,6 +73,7 @@ class HttpProxyTrail extends Trail[Request, Response] {
    * <li>/a-very/specific/path.html</li>
    * </ul>
    */
+  @NotNull
   @BeanProperty
   var locations: Array[String] = null
 
@@ -78,6 +82,10 @@ class HttpProxyTrail extends Trail[Request, Response] {
    */
   @BeanProperty
   var timeout: Int = 5
+
+  @JsonProperty("enable_tls")
+  @BeanProperty
+  var enableTLS: Boolean = false
 
   @BeanProperty
   var tcpConnectTimeout: Int = 5
@@ -91,18 +99,6 @@ class HttpProxyTrail extends Trail[Request, Response] {
   private[this] var service: Service[Request, Response] = null
 
   private[this] var matchers: Array[Pattern] = null
-
-
-  def validate(): List[ValidationError] = {
-    var errors: List[ValidationError] = Nil
-
-    if (timeout <= 0) errors ::= ValidationError("timeout", "invalid_value", "timeout may not be <= 0")
-    if (tcpConnectTimeout <= 0) errors ::= ValidationError("tcpConnectTimeout", "invalid_value", "tcpConnectTimeout may not be <= 0")
-    if (hostConnectionLimit <= 0) errors ::= ValidationError("hostConnectionLimit", "invalid_value", "hostConnectionLimit may not be < 0")
-    if (hosts == null || hosts.length == 0) errors ::= ValidationError("hosts", "invalid_value", "hosts may not be < 0")
-
-    errors
-  }
 
   /**
    * @return a future that allows us to mark when initialization is complete
@@ -135,13 +131,24 @@ class HttpProxyTrail extends Trail[Request, Response] {
     Future.value {
       synchronized {
         if (service == null) {
-          service = ClientBuilder()
-            .codec(RichHttp[Request](Http()))
-            .hosts(hosts.mkString(","))
-            .timeout(timeout.seconds)
-            .tcpConnectTimeout(tcpConnectTimeout.seconds)
-            .hostConnectionLimit(hostConnectionLimit)
-            .build()
+          if (enableTLS) {
+            service = ClientBuilder()
+              .codec(RichHttp[Request](Http()))
+              .hosts(hosts.mkString(","))
+              .timeout(timeout.seconds)
+              .tls(hosts.map(_.split(":").head).mkString(","))
+              .tcpConnectTimeout(tcpConnectTimeout.seconds)
+              .hostConnectionLimit(hostConnectionLimit)
+              .build()
+          } else {
+            service = ClientBuilder()
+              .codec(RichHttp[Request](Http()))
+              .hosts(hosts.mkString(","))
+              .timeout(timeout.seconds)
+              .tcpConnectTimeout(tcpConnectTimeout.seconds)
+              .hostConnectionLimit(hostConnectionLimit)
+              .build()
+          }
         }
       }
     }
