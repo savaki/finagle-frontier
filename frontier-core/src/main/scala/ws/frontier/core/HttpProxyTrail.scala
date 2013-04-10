@@ -7,7 +7,6 @@ import com.twitter.finagle.Service
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.conversions.time._
 import java.util.regex.Pattern
-import javax.validation.constraints.NotNull
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
@@ -33,9 +32,11 @@ class HttpProxyTrail extends Trail[Request, Response] {
 
   def matches(request: Request): Boolean = {
     if (matchers == null || matchers.length == 0) {
+      // no matchers defined?  then accept anything
       true
 
     } else {
+      // otherwise, only return true if we find a match
       var index = 0
       val uri = request.uri
       while (index < matchers.length) {
@@ -51,7 +52,6 @@ class HttpProxyTrail extends Trail[Request, Response] {
   /**
    * [REQUIRED] the array of hosts to connect to in the format hostname:port
    */
-  @NotNull
   @BeanProperty
   var hosts: Array[String] = null
 
@@ -73,7 +73,6 @@ class HttpProxyTrail extends Trail[Request, Response] {
    * <li>/a-very/specific/path.html</li>
    * </ul>
    */
-  @NotNull
   @BeanProperty
   var locations: Array[String] = null
 
