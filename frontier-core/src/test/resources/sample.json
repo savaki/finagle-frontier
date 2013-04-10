@@ -2,7 +2,18 @@
   "decorators": {
     "default": {
       "content_type": "text/html",
-      "uri": "/sample/default.html"
+      "uri": "/sample/default.html",
+      "context": [
+        {
+          "name": "session",
+          "uri": "/session/header",
+          "timeout": 50
+        },
+        {
+          "name": "title",
+          "header": "X-Title"
+        }
+      ]
     }
   },
   "territories": [

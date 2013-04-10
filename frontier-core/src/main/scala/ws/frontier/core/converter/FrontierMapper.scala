@@ -1,6 +1,6 @@
 package ws.frontier.core.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{DeserializationFeature, MapperFeature, ObjectMapper}
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.File
 import java.net.URL

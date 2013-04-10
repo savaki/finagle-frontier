@@ -5,6 +5,7 @@ import com.twitter.finagle.http.{Response, Request}
 import com.twitter.util.Future
 import com.twitter.finagle.Service
 import org.jboss.netty.handler.codec.http.{HttpResponseStatus, HttpVersion}
+import ws.frontier.core.converter.FrontierMapper
 
 /**
  * @author matt.ho@gmail.com
@@ -37,6 +38,34 @@ class DecoratorTest extends TestSuite {
           response
       }
     }
+  }
+
+  "mapper" should "parse decorator with ContextEntry" in {
+    val json =
+      """
+        |{
+        |  "content_type": "text/html",
+        |  "uri": "/sample/default.html",
+        |  "context": [
+        |    {
+        |      "name": "session",
+        |      "uri": "/session/header",
+        |      "timeout": 50
+        |    },
+        |    {
+        |      "name": "title",
+        |      "header": "X-Title"
+        |    }
+        |  ]
+        |}
+      """.stripMargin
+    val decorator: Decorator = FrontierMapper.readValue[Decorator](json)
+    decorator should not(be(null))
+    decorator.context.length should be(2)
+    decorator.context.head.header should be(null)
+    decorator.context.head.uri should be("/session/header")
+    decorator.context.head.timeout should be(50)
+    decorator.context.last.header should be("X-Title")
   }
 
   "#apply" should "apply template for text/html" in {
