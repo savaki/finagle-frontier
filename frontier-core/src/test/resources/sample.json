@@ -1,4 +1,10 @@
 {
+  "decorators": {
+    "default": {
+      "content_type": "text/html",
+      "uri": "/sample/default.html"
+    }
+  },
   "territories": [
     {
       "port": 9080,

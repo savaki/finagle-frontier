@@ -130,23 +130,19 @@ class HttpProxyTrail extends Trail[Request, Response] {
     Future.value {
       synchronized {
         if (service == null) {
+          val builder = ClientBuilder()
+            .codec(RichHttp[Request](Http()))
+            .hosts(hosts.mkString(","))
+            .timeout(timeout.seconds)
+            .tcpConnectTimeout(tcpConnectTimeout.seconds)
+            .hostConnectionLimit(hostConnectionLimit)
+
           if (enableTLS) {
-            service = ClientBuilder()
-              .codec(RichHttp[Request](Http()))
-              .hosts(hosts.mkString(","))
-              .timeout(timeout.seconds)
-              .tls(hosts.map(_.split(":").head).mkString(","))
-              .tcpConnectTimeout(tcpConnectTimeout.seconds)
-              .hostConnectionLimit(hostConnectionLimit)
-              .build()
+            val tlsHosts: String = hosts.map(_.split(":").head).mkString(",") // strip off port number
+            service = builder.tls(tlsHosts).build()
+
           } else {
-            service = ClientBuilder()
-              .codec(RichHttp[Request](Http()))
-              .hosts(hosts.mkString(","))
-              .timeout(timeout.seconds)
-              .tcpConnectTimeout(tcpConnectTimeout.seconds)
-              .hostConnectionLimit(hostConnectionLimit)
-              .build()
+            service = builder.build()
           }
         }
       }

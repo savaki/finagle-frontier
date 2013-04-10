@@ -26,3 +26,10 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
   )
 }
 
+{
+  val handlebarsVersion = "0.11.0"
+  libraryDependencies ++= Seq(
+    "com.github.jknack" % "handlebars" % handlebarsVersion withSources()
+  )
+}
+

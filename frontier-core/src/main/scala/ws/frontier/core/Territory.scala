@@ -6,11 +6,7 @@ import com.twitter.finagle.builder.{Server, ServerBuilder}
 import com.twitter.finagle.http.RichHttp
 import com.twitter.finagle.http.{Response, Http, Request}
 import com.twitter.util.Future
-import java.lang.reflect.Method
 import java.net.InetSocketAddress
-import java.util.{Set => JSet}
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 /**
  * @author matt.ho@gmail.com

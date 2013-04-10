@@ -65,23 +65,4 @@ class TerritoryTest extends TestSuite {
     response.statusCode should be(301)
     territory.shutdown().get()
   }
-
-  "#validate" should "validate dependent objects" in {
-    val json =
-      """
-        |{
-        | "port": 8000,
-        | "name": "home",
-        | "trail": [
-        |   {
-        |   }
-        | ]
-        | }
-        |}
-      """.stripMargin
-    val territory: Territory[Request, Response] = FrontierMapper.readValue[Territory[Request, Response]](json)
-//    evaluating {
-//      territory.validate()
-//    } should produce[ConstraintViolationException] // HttpProxyTrail is missing lots of stuff
-  }
 }

@@ -2,11 +2,15 @@ package ws.frontier.core
 
 import com.twitter.util.Future
 import scala.beans.BeanProperty
+import java.util.{Map => JMap}
 
 /**
  * @author matt.ho@gmail.com
  */
 class Frontier[IN, OUT] {
+  @BeanProperty
+  var decorators: JMap[String, Decorator] = null
+
   @BeanProperty
   var territories: Array[Territory[IN, OUT]] = null
 
