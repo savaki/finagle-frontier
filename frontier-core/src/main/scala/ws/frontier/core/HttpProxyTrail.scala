@@ -30,6 +30,22 @@ class HttpProxyTrail extends Trail[Request, Response] {
     }
   }
 
+  override def banner(log: Banner) {
+    val locationsString = Option(locations).map(_.mkString(", ")).getOrElse("<all>")
+    val message =
+      s"""
+        |ProxyTrail {
+        |  hosts:      ${hosts.mkString(", ")}
+        |  tls:        ${if (enableTLS) "enabled" else "not-enabled"}
+        |  locations:  ${locationsString}
+        |  timeout:             ${timeout}ms
+        |  tcpConnectTimeout:   ${tcpConnectTimeout}ms
+        |  hostConnectionLimit: ${hostConnectionLimit}
+        |}
+      """.stripMargin
+    log(message)
+  }
+
   def matches(request: Request): Boolean = {
     if (matchers == null || matchers.length == 0) {
       // no matchers defined?  then accept anything

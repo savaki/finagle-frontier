@@ -6,6 +6,8 @@ import AssemblyKeys._
 object Build extends Build {
   lazy val frontierVersion = "0.1-SNAPSHOT"
 
+  val commons_cli = "commons-cli" % "commons-cli" % "1.2" withSources()
+
   /**
    * the interaction between sbt and the assembly plugin is very fragile and requires us to define the project here
    * rather than in a build.sbt file
@@ -14,7 +16,8 @@ object Build extends Build {
     version := frontierVersion,
     organization := "ws.frontier",
     name := "frontier-app",
-    scalaVersion := "2.10.1"
+    scalaVersion := "2.10.1",
+    libraryDependencies ++= Seq(commons_cli)
   )
 
   lazy val all = Project(id = "all",
@@ -28,7 +31,7 @@ object Build extends Build {
         case _ => MergeStrategy.first
       },
       jarName in assembly := "frontier-%s.jar".format(frontierVersion),
-      mainClass in assembly := Some("ws.frontier.Frontier")
+      mainClass in assembly := Some("ws.frontier.FrontierApp")
     )
   ) dependsOn(core, test % "compile->test")
 

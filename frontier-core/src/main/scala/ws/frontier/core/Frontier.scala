@@ -2,7 +2,8 @@ package ws.frontier.core
 
 import com.twitter.util.Future
 import scala.beans.BeanProperty
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, Date}
+import org.joda.time.DateTime
 
 /**
  * @author matt.ho@gmail.com
@@ -22,6 +23,18 @@ class Frontier[IN, OUT] {
     }
   }
 
+  /**
+   * @param io the buffer to write the banner message back to
+   */
+  def banner(log: Banner) {
+    log("Frontier started at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
+    log()
+    log("Territories:")
+    log.child {
+      territories.foreach(_.banner(log))
+    }
+  }
+
   def initialize(): Future[Unit] = {
     eachTerritory(_.initialize())
   }
@@ -35,13 +48,3 @@ class Frontier[IN, OUT] {
   }
 }
 
-object Frontier {
-  def main(args: Array[String]) {
-    val json =
-      """
-        |{
-        |   trails =
-        |}
-      """.stripMargin
-  }
-}

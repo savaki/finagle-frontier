@@ -33,3 +33,9 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
   )
 }
 
+{
+  libraryDependencies ++= Seq(
+    "joda-time" % "joda-time" % "1.6.2" withSources()
+  )
+}
+

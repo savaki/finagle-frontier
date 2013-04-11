@@ -25,6 +25,8 @@ class Territory[IN, OUT] {
 
   def initialize(): Future[Unit] = trail.initialize()
 
+  def banner(log: Banner) = trail.banner(log)
+
   def start(): Future[Unit] = {
     trail.start().map {
       unit =>
