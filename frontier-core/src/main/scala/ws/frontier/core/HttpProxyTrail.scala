@@ -6,65 +6,15 @@ import beans.BeanProperty
 import com.twitter.finagle.Service
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.conversions.time._
+import com.twitter.conversions.storage._
 import java.util.regex.Pattern
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.text.NumberFormat
 
 /**
  * @author matt.ho@gmail.com
  */
 class HttpProxyTrail extends Trail[Request, Response] {
-  /**
-   * HttpProxyTrail provides the basic unit of work for HTTP based trails.
-   *
-   * Note: this currently doesn't support chunked or streaming calls
-   *
-   * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
-   */
-  def apply(request: Request): Option[Future[Response]] = {
-    if (matches(request)) {
-      request.removeHeader("host")
-      request.addHeader("host", host)
-      Some(service(request))
-    } else {
-      None
-    }
-  }
-
-  override def banner(log: Banner) {
-    val locationsString = Option(locations).map(_.mkString(", ")).getOrElse("<any>")
-    val message =
-      s"""
-        |ProxyTrail {
-        |  hosts:               ${hosts.mkString(", ")}
-        |  tls:                 ${if (enableTLS) "enabled" else "disabled"}
-        |  locations:           ${locationsString}
-        |  timeout:             ${timeout}s
-        |  tcpConnectTimeout:   ${tcpConnectTimeout}s
-        |  hostConnectionLimit: ${hostConnectionLimit}
-        |}
-      """.stripMargin
-    log(message)
-  }
-
-  def matches(request: Request): Boolean = {
-    if (matchers == null || matchers.length == 0) {
-      // no matchers defined?  then accept anything
-      true
-
-    } else {
-      // otherwise, only return true if we find a match
-      var index = 0
-      val uri = request.uri
-      while (index < matchers.length) {
-        if (matchers(index).matcher(uri).matches()) {
-          return true
-        }
-        index = index + 1
-      }
-      false
-    }
-  }
-
   /**
    * [REQUIRED] the array of hosts to connect to in the format hostname:port
    */
@@ -105,6 +55,15 @@ class HttpProxyTrail extends Trail[Request, Response] {
   @BeanProperty
   var tcpConnectTimeout: Int = 5
 
+  @BeanProperty
+  var decompressionEnabled: Boolean = true
+
+  @BeanProperty
+  var maxRequestSize: Int = 10
+
+  @BeanProperty
+  var maxResponseSize: Int = 10
+
   /**
    * [OPTIONAL] how many concurrent connections should we allow to the specified host (defaults to 1024)
    */
@@ -114,6 +73,63 @@ class HttpProxyTrail extends Trail[Request, Response] {
   private[this] var service: Service[Request, Response] = null
 
   private[this] var matchers: Array[Pattern] = null
+
+  override def banner(log: Banner) {
+    val numberFormat = NumberFormat.getNumberInstance
+    numberFormat.setGroupingUsed(true)
+    val locationsString = Option(locations).map(_.mkString(", ")).getOrElse("<any>")
+    val message =
+      s"""
+        |ProxyTrail {
+        |  hosts:                ${hosts.mkString(", ")}
+        |  tls:                  ${if (enableTLS) "enabled" else "disabled"}
+        |  locations:            ${locationsString}
+        |  timeout:              ${timeout}s
+        |  tcpConnectTimeout:    ${tcpConnectTimeout}s
+        |  hostConnectionLimit:  ${numberFormat.format(hostConnectionLimit)}
+        |  decompressionEnabled: ${decompressionEnabled}
+        |  maxRequestSize:       ${numberFormat.format(maxRequestSize)}M
+        |  maxResponseSize:      ${numberFormat.format(maxResponseSize)}M
+        |}
+      """.stripMargin
+    log(message)
+  }
+
+  /**
+   * HttpProxyTrail provides the basic unit of work for HTTP based trails.
+   *
+   * Note: this currently doesn't support chunked or streaming calls
+   *
+   * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
+   */
+  def apply(request: Request): Option[Future[Response]] = {
+    if (matches(request)) {
+      request.removeHeader("host")
+      request.addHeader("host", host)
+      Some(service(request))
+    } else {
+      None
+    }
+  }
+
+  def matches(request: Request): Boolean = {
+    if (matchers == null || matchers.length == 0) {
+      // no matchers defined?  then accept anything
+      true
+
+    } else {
+      // otherwise, only return true if we find a match
+      var index = 0
+      val uri = request.uri
+      while (index < matchers.length) {
+        if (matchers(index).matcher(uri).matches()) {
+          return true
+        }
+        index = index + 1
+      }
+      false
+    }
+  }
 
   /**
    * @return a future that allows us to mark when initialization is complete
@@ -147,7 +163,7 @@ class HttpProxyTrail extends Trail[Request, Response] {
       synchronized {
         if (service == null) {
           val builder = ClientBuilder()
-            .codec(RichHttp[Request](Http()))
+            .codec(RichHttp[Request](buildCodec()))
             .hosts(hosts.mkString(","))
             .timeout(timeout.seconds)
             .tcpConnectTimeout(tcpConnectTimeout.seconds)
@@ -163,6 +179,14 @@ class HttpProxyTrail extends Trail[Request, Response] {
         }
       }
     }
+  }
+
+  def buildCodec(): Http = {
+    val codec: Http = Http()
+    codec.decompressionEnabled(true)
+    codec.maxRequestSize(maxRequestSize.megabytes)
+    codec.maxResponseSize(maxResponseSize.megabytes)
+    codec
   }
 
   def shutdown(): Future[Unit] = {
