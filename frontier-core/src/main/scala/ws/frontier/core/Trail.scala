@@ -54,7 +54,9 @@ class AggregatingTrail[IN, OUT](@BeanProperty val trails: Array[Trail[IN, OUT]])
 
   override def banner(log: Banner) {
     trails.foreach {
-      trail => log.child(trail.banner(log))
+      trail =>
+        log() // put a spacer line before each trail
+        trail.banner(log)
     }
   }
 

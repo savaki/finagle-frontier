@@ -5,6 +5,7 @@ import java.io.File
 import org.apache.commons.cli.{HelpFormatter, CommandLine, PosixParser, Options}
 import ws.frontier.core.{Banner, Frontier}
 import ws.frontier.core.converter.FrontierMapper
+import com.twitter.util.Future
 
 /**
  * @author matt
@@ -43,16 +44,20 @@ object FrontierApp {
       usage()
     }
 
+    val log: Banner = new Banner
     val frontier = FrontierMapper.readValue[Frontier[Request, Response]](config)
 
     frontier.initialize()
 
-    if( cli.hasOption("banner")) {
-      frontier.banner(new Banner)
+    if (cli.hasOption("banner")) {
+      frontier.banner(log)
     }
 
-    frontier.start()
+    val results: Future[Seq[Int]] = frontier.start()
 
-    println("hello world")
+    results.onSuccess {
+      ports => log("Frontier started successfully.  Listening to %s" format ports.mkString(", "))
+    }
+
   }
 }

@@ -39,8 +39,13 @@ class Frontier[IN, OUT] {
     eachTerritory(_.initialize())
   }
 
-  def start(): Future[Unit] = {
-    eachTerritory(_.start())
+  /**
+   * @return the list of ports that we were bound to
+   */
+  def start(): Future[Seq[Int]] = {
+    Future.collect {
+      territories.map(_.start())
+    }
   }
 
   def shutdown(): Future[Unit] = {

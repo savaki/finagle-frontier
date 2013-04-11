@@ -36,10 +36,10 @@ class HttpProxyTrail extends Trail[Request, Response] {
       s"""
         |ProxyTrail {
         |  hosts:               ${hosts.mkString(", ")}
-        |  tls:                 ${if (enableTLS) "enabled" else "not-enabled"}
+        |  tls:                 ${if (enableTLS) "enabled" else "disabled"}
         |  locations:           ${locationsString}
-        |  timeout:             ${timeout}ms
-        |  tcpConnectTimeout:   ${tcpConnectTimeout}ms
+        |  timeout:             ${timeout}s
+        |  tcpConnectTimeout:   ${tcpConnectTimeout}s
         |  hostConnectionLimit: ${hostConnectionLimit}
         |}
       """.stripMargin

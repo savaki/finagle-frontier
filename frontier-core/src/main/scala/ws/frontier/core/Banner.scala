@@ -19,10 +19,8 @@ class Banner(tab: String = "  ") {
   }
 
   def apply(message: String = "") {
-    Option(message).getOrElse("").split("\n").foreach {
-      line => println(s"${
-        tab * depth
-      }${line}")
+    Option(message).getOrElse("").trim.split("\n").foreach {
+      line => println("%s%s" format(tab * depth, line))
     }
   }
 }

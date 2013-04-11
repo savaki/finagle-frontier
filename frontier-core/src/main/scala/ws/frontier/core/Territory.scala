@@ -28,14 +28,16 @@ class Territory[IN, OUT] {
   def banner(log: Banner) {
     log("Territory: {")
     log.child {
-      log(s"name: ${name}")
+      if (name != null) {
+        log(s"name: ${name}")
+      }
       log(s"port: ${port}")
       trail.banner(log)
     }
     log("}")
   }
 
-  def start(): Future[Unit] = {
+  def start(): Future[Int] = {
     trail.start().map {
       unit =>
         server = ServerBuilder()
@@ -43,6 +45,7 @@ class Territory[IN, OUT] {
           .codec(RichHttp[Request](Http()))
           .bindTo(new InetSocketAddress(port))
           .build(new TrailService[Request, Response](trail))
+        port
     }
   }
 
