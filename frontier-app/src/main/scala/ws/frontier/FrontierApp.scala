@@ -13,6 +13,7 @@ import ws.frontier.core.converter.FrontierMapper
 object FrontierApp {
   val options = {
     val options: Options = new Options()
+    options.addOption("b", "banner", false, "display banner messages on startup")
     options.addOption("c", "config", true, "json configuration file")
     options.addOption("h", "help", false, "usage")
     options
@@ -43,8 +44,13 @@ object FrontierApp {
     }
 
     val frontier = FrontierMapper.readValue[Frontier[Request, Response]](config)
+
     frontier.initialize()
-    frontier.banner(new Banner)
+
+    if( cli.hasOption("banner")) {
+      frontier.banner(new Banner)
+    }
+
     frontier.start()
 
     println("hello world")

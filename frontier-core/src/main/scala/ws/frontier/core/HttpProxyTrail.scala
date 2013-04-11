@@ -31,13 +31,13 @@ class HttpProxyTrail extends Trail[Request, Response] {
   }
 
   override def banner(log: Banner) {
-    val locationsString = Option(locations).map(_.mkString(", ")).getOrElse("<all>")
+    val locationsString = Option(locations).map(_.mkString(", ")).getOrElse("<any>")
     val message =
       s"""
         |ProxyTrail {
-        |  hosts:      ${hosts.mkString(", ")}
-        |  tls:        ${if (enableTLS) "enabled" else "not-enabled"}
-        |  locations:  ${locationsString}
+        |  hosts:               ${hosts.mkString(", ")}
+        |  tls:                 ${if (enableTLS) "enabled" else "not-enabled"}
+        |  locations:           ${locationsString}
         |  timeout:             ${timeout}ms
         |  tcpConnectTimeout:   ${tcpConnectTimeout}ms
         |  hostConnectionLimit: ${hostConnectionLimit}
