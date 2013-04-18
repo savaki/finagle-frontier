@@ -6,6 +6,10 @@ import com.twitter.util.Future
 import com.twitter.finagle.Service
 import org.jboss.netty.handler.codec.http.{HttpResponseStatus, HttpVersion}
 import ws.frontier.core.converter.FrontierMapper
+import java.io.File
+import com.github.jknack.handlebars.Template
+import java.util.HashMap
+import com.github.jknack.handlebars.Handlebars.SafeString
 
 /**
  * @author matt.ho@gmail.com
@@ -13,11 +17,11 @@ import ws.frontier.core.converter.FrontierMapper
 class DecoratorTest extends TestSuite {
   val decorator = {
     val instance = new Decorator() {
-      override def getTemplateSource(trail: Trail[Request, Response]): Future[String] = {
+      override def fetchTemplateSource(): Future[String] = {
         Future.value( """<div>{{content}}</div>""")
       }
     }
-    instance.initialize(null)
+    instance.initialize(new EmptyRegistry[Request, Response])
     instance
   }
 
@@ -90,5 +94,21 @@ class DecoratorTest extends TestSuite {
     time(10000) {
       request.setContentString(content)
     }
+  }
+
+  "#fetchTemplateFromURL" should "read from file url" in {
+    val decorator = new Decorator
+    decorator.uri = new File("frontier-core/src/test/resources/fetchTemplateFromURL.txt").toURI.toString
+    decorator.fetchTemplateFromURI().get should include("valid")
+  }
+
+  "#merge" should "not escape special characters like < and >" in {
+    val hbs = """{{content}}"""
+    val template: Template = Decorator.handlebars.compile(hbs)
+    val context = new HashMap[String, SafeString]()
+    val content: String = """<a href="http://google.com">click me</a>"""
+    context.put("content", new SafeString(content))
+    val html: String = template(context)
+    html should include(content)
   }
 }

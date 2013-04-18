@@ -1,7 +1,7 @@
 package ws.frontier.core
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.jknack.handlebars.{Template, Handlebars}
+import com.github.jknack.handlebars.{ParserFactory, Template, Handlebars}
 import com.twitter.finagle.http.{Response, Request}
 import com.twitter.finagle.{Service, Filter}
 import com.twitter.util.Future
@@ -9,6 +9,11 @@ import java.util.HashMap
 import scala.beans.BeanProperty
 import java.util.regex.Pattern
 import ws.frontier.core.util.{Logging, Banner}
+import java.net.{URI, URLConnection, URL}
+import java.io.InputStream
+import scala.io.Source
+import com.github.jknack.handlebars.Handlebars.SafeString
+import scala.collection.JavaConversions._
 
 /**
  * @author matt.ho@gmail.com
@@ -42,13 +47,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   private[core] var headerContexts: Array[HeaderContext] = null
 
-  private[core] var uriContexts: Array[UriContext] = {
-    Option(context)
-      .getOrElse(Array[ContextEntryBuilder]())
-      .map(_.buildUriContext())
-      .filter(_ != None)
-      .map(_.get)
-  }
+  private[core] var uriContexts: Array[UriContext] = null
 
   def banner(log: Banner) {
     log()
@@ -126,7 +125,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
   }
 
   def isExcluded(request: Request): Boolean = {
-    if( request.getHeader(Decorator.DECORATOR_HEADER) != null ) {
+    if (request.getHeader(Decorator.DECORATOR_HEADER) != null) {
       return true
     }
 
@@ -143,7 +142,13 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   def merge(response: Response, requestContext: HashMap[String, String]): Response = {
     requestContext.put("content", response.getContentString())
-    val html: String = template.get(requestContext)
+
+    val safeContext: HashMap[String, SafeString] = new HashMap[String, SafeString]()
+    requestContext.foreach {
+      pair => safeContext.put(pair._1, new SafeString(pair._2))
+    }
+
+    val html: String = template.get(safeContext)
     val bytes: Array[Byte] = html.getBytes("UTF-8")
     response.removeHeader("Content-Length")
     response.addHeader("Content-Length", bytes.length.toString)
@@ -151,7 +156,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     response
   }
 
-  def getTemplateSource(trail: Trail[Request, Response]): Future[String] = {
+  protected[core] def fetchTemplateFromTrail(): Future[String] = {
     val request = Request(uri)
     val future: Future[Response] = trail(request).getOrElse {
       throw new RuntimeException("unable to load template, %s, from trails" format uri)
@@ -160,6 +165,38 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     future.map {
       response => response.getContentString()
     }
+  }
+
+  protected[core] def fetchTemplateFromURI(): Future[String] = {
+    Future.value {
+      val connection: URLConnection = new URI(uri).toURL.openConnection()
+      val inputStream: InputStream = connection.getInputStream
+      try {
+        Source.fromInputStream(inputStream).mkString
+
+      } finally {
+        if (inputStream != null) {
+          inputStream.close()
+        }
+      }
+    }
+  }
+
+  def fetchTemplateSource(): Future[String] = {
+    require(uri != null, "unable to fetch template from a null URL!")
+
+    val result: Future[String] = uri match {
+      case uri if uri.startsWith("/") => fetchTemplateFromTrail()
+      case http if uri.startsWith("http://") => fetchTemplateFromURI()
+      case file if uri.startsWith("file:") => fetchTemplateFromURI()
+      case _ => throw new UnsupportedOperationException("unable to fetch template from %s!  %s is an unsupported protocol." format(uri, uri))
+    }
+
+    result.onSuccess {
+      hbs => trace(hbs)
+    }
+
+    result
   }
 
   def compileTemplate(hbs: String): Template = {
@@ -184,11 +221,9 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
       .filter(_ != None)
       .map(_.get)
 
-    trail = registry.trail(trailId).getOrElse {
-      throw new RuntimeException("unable to load template!  no trail found with id, %s" format trailId)
-    }.asInstanceOf[Trail[Request, Response]]
+    trail = registry.trail(trailId).get.asInstanceOf[Trail[Request, Response]]
 
-    getTemplateSource(trail).map {
+    fetchTemplateSource.map {
       hbs => {
         warn("loaded template, %s, from trail [id: %s]" format(uri, trailId))
         template = Option(compileTemplate(hbs))
@@ -202,7 +237,10 @@ object Decorator {
 
   val DECORATOR_HEADER = "X-Decorator"
 
-  private[core] val handlebars: Handlebars = new Handlebars()
+  private[core] val handlebars: Handlebars = {
+    val compiler: Handlebars = new Handlebars()
+    compiler
+  }
 }
 
 

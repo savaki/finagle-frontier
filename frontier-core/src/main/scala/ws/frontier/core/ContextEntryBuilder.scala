@@ -17,6 +17,9 @@ class ContextEntryBuilder {
   var uri: String = null
 
   @BeanProperty
+  var file: String = null
+
+  @BeanProperty
   var timeout: Long = 100
 
   @BeanProperty

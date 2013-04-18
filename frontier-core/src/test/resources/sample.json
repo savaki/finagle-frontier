@@ -2,7 +2,7 @@
   "decorators": {
     "default": {
       "content_type": "text/html",
-      "uri": "/sample/default.html",
+      "uri": "file:frontier-core/src/test/resources/sample.hbs",
       "exclude": ["*.png", "*.gif", "*.jpg", "*.pdf"],
       "context": [
         {
