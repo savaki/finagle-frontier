@@ -19,7 +19,7 @@ class EchoTrail[T] extends Trail[T, T] {
     }
   }
 
-  def start(): Future[Unit] = Future()
+  def start(registry: Registry[T, T]): Future[Unit] = Future()
 
   def shutdown(): Future[Unit] = Future()
 }

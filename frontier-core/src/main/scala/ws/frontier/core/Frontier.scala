@@ -9,12 +9,22 @@ import scala.collection.JavaConversions._
 /**
  * @author matt.ho@gmail.com
  */
-class Frontier[IN, OUT] {
+class Frontier[IN, OUT] extends Registry[IN, OUT] {
   @BeanProperty
   var decorators: JMap[String, Decorator] = null
 
   @BeanProperty
   var territories: Array[Territory[IN, OUT]] = null
+
+  var trails: Map[String, Trail[IN, OUT]] = Map()
+
+  def decorator(name: String): Option[Decorator] = {
+    Option(decorators.get(name))
+  }
+
+  def trail(id: String): Option[Trail[IN, OUT]] = {
+    trails.get(id)
+  }
 
   protected def eachTerritory(function: Territory[IN, OUT] => Future[Unit]): Future[Unit] = {
     Future.collect {

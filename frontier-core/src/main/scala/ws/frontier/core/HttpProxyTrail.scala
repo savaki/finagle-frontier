@@ -179,7 +179,7 @@ class HttpProxyTrail extends Trail[Request, Response] {
     }
   }
 
-  def start(frontier: Frontier[Request, Response]): Future[Unit] = {
+  def start(registry: Registry[Request, Response]): Future[Unit] = {
     Future.value {
       synchronized {
         if (service == null) {

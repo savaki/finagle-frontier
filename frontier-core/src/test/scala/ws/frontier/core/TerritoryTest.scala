@@ -59,8 +59,10 @@ class TerritoryTest extends TestSuite {
       .tcpConnectTimeout(10.seconds)
       .build()
 
+    val registry: Registry[Request, Response] = new EmptyRegistry[Request, Response]()
+
     territory.initialize().get()
-    territory.start().get()
+    territory.start(registry).get()
     val response: Response = client(Request("/")).get()
     response.statusCode should be(301)
     territory.shutdown().get()

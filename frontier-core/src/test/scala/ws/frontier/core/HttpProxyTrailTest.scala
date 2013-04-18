@@ -33,14 +33,14 @@ class HttpProxyTrailTest extends TestSuite {
     val trail = new HttpProxyTrail
     trail.hosts = Array("www.loyal3.com:80")
     trail.initialize()
-    trail.start().get()
+    trail.start(new EmptyRegistry[Request, Response]).get()
 
     val result: Option[Future[Response]] = trail(Request("/"))
     result.isDefined should be(true)
 
     val response: Response = result.get.get
     response.getHeaderNames().asScala.foreach {
-      name => println("%15s: %s" format (name, response.getHeader(name)))
+      name => println("%15s: %s" format(name, response.getHeader(name)))
     }
     response.getStatusCode() should be(200)
 

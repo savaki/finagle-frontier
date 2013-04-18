@@ -4,8 +4,14 @@ package ws.frontier.core
  * @author matt
  */
 
-trait Registry {
+trait Registry[IN, OUT] {
   def decorator(name: String): Option[Decorator]
 
-  def trail[IN, OUT](id: String): Option[Trail[IN, OUT]]
+  def trail(id: String): Option[Trail[IN, OUT]]
+}
+
+class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
+  def decorator(name: String): Option[Decorator] = None
+
+  def trail(id: String): Option[Trail[IN, OUT]] = None
 }

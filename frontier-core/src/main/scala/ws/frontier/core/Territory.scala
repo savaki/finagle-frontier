@@ -37,8 +37,8 @@ class Territory[IN, OUT] {
     log("}")
   }
 
-  def start(frontier: Frontier[IN, OUT]): Future[Int] = {
-    trail.start(frontier).map {
+  def start(registry: Registry[IN, OUT]): Future[Int] = {
+    trail.start(registry).map {
       unit =>
         val httpTrail: Trail[Request, Response] = trail.asInstanceOf[Trail[Request, Response]]
         server = ServerBuilder()
