@@ -1,10 +1,10 @@
 package ws.frontier.core.converter
 
-import com.fasterxml.jackson.databind.{DeserializationFeature, MapperFeature, ObjectMapper}
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.File
 import java.net.URL
-import ws.frontier.core.Trail
+import ws.frontier.core.{Frontier, Trail}
 
 /**
  * @author matt
@@ -24,15 +24,32 @@ class FrontierMapper {
   }
 
   def readValue[T](json: String)(implicit t: Manifest[T]): T = {
-    mapper.readValue(json, t.erasure.asInstanceOf[Class[T]])
+    withTrails {
+      mapper.readValue(json, t.erasure.asInstanceOf[Class[T]])
+    }
   }
 
   def readValue[T](file: File)(implicit t: Manifest[T]): T = {
-    mapper.readValue[T](file, t.erasure.asInstanceOf[Class[T]])
+    withTrails {
+      mapper.readValue[T](file, t.erasure.asInstanceOf[Class[T]])
+    }
   }
 
   def readValue[T](url: URL)(implicit t: Manifest[T]): T = {
-    mapper.readValue[T](url, t.erasure.asInstanceOf[Class[T]])
+    withTrails {
+      mapper.readValue[T](url, t.erasure.asInstanceOf[Class[T]])
+    }
+  }
+
+  def withTrails[T](function: => T): T = {
+    val (result, trails) = TrailConverter.captureTrails {
+      function
+    }
+
+    if (result.isInstanceOf[Frontier[_, _]]) {
+      result.asInstanceOf[Frontier[_, _]].withTrails(trails)
+    }
+    result
   }
 }
 

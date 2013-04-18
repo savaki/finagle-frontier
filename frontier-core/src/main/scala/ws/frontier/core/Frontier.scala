@@ -18,6 +18,13 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] {
 
   var trails: Map[String, Trail[IN, OUT]] = Map()
 
+  private[core] def withTrails(trails: JMap[_, _]): Frontier[IN, OUT] = {
+    this.trails = trails
+      .map(entry => entry._1 -> entry._2).toMap
+      .asInstanceOf[Map[String, Trail[IN, OUT]]]
+    this
+  }
+
   def decorator(name: String): Option[Decorator] = {
     Option(decorators.get(name))
   }

@@ -16,6 +16,9 @@ abstract class Trail[IN, OUT] {
   def apply(request: IN): Option[Future[OUT]]
 
   @BeanProperty
+  var id: String = null
+
+  @BeanProperty
   var tags: Array[String] = null
 
   /**
