@@ -1,9 +1,10 @@
 package ws.frontier.core
 
 import com.twitter.util.Future
-import scala.beans.BeanProperty
-import java.util.{Map => JMap, Date}
+import java.util.{Map => JMap}
 import org.joda.time.DateTime
+import scala.beans.BeanProperty
+import scala.collection.JavaConversions._
 
 /**
  * @author matt.ho@gmail.com
@@ -24,7 +25,7 @@ class Frontier[IN, OUT] {
   }
 
   /**
-   * @param io the buffer to write the banner message back to
+   * @param log the buffer to write the banner message back to
    */
   def banner(log: Banner) {
     log("Frontier started at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
@@ -32,6 +33,11 @@ class Frontier[IN, OUT] {
     log("Territories:")
     log.child {
       territories.foreach(_.banner(log))
+    }
+    log()
+    log("Decorators:")
+    log.child {
+      decorators.values().foreach(_.banner(log))
     }
   }
 
@@ -44,7 +50,7 @@ class Frontier[IN, OUT] {
    */
   def start(): Future[Seq[Int]] = {
     Future.collect {
-      territories.map(_.start())
+      territories.map(_.start(this))
     }
   }
 

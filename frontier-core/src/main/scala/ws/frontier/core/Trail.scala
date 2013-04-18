@@ -27,7 +27,7 @@ abstract class Trail[IN, OUT] {
     throw new UnsupportedOperationException("#banner not implemented for class, %s" format this.getClass.getCanonicalName)
   }
 
-  def start(): Future[Unit]
+  def start(frontier: Frontier[IN, OUT]): Future[Unit]
 
   def shutdown(): Future[Unit]
 }
@@ -66,15 +66,15 @@ class AggregatingTrail[IN, OUT](@BeanProperty val trails: Array[Trail[IN, OUT]])
     }
   }
 
-  override def start(): Future[Unit] = {
+  override def start(frontier: Frontier[IN, OUT]): Future[Unit] = {
     Future.join {
-      trails.map(_.start())
+      trails.map(_.start(frontier))
     }
   }
 
   override def shutdown(): Future[Unit] = {
     Future.join {
-      trails.map(_.start())
+      trails.map(_.shutdown())
     }
   }
 }

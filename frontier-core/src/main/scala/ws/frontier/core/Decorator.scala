@@ -45,6 +45,16 @@ class Decorator extends Filter[Request, Response, Request, Response] {
       .map(_.get)
   }
 
+  def banner(log: Banner) {
+    log()
+    log("Decorator {")
+    log.child {
+      log("content_type: %s" format contentType)
+      log("uri:          %s" format uri)
+    }
+    log("}")
+  }
+
   def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
     val uriContexts: Future[Seq[(String, String)]] = getUriContexts(request)
 

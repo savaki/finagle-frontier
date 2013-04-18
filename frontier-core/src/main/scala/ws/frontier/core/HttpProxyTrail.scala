@@ -52,15 +52,36 @@ class HttpProxyTrail extends Trail[Request, Response] {
   @BeanProperty
   var enableTLS: Boolean = false
 
+  /**
+   * the list of decorators used to adorn this content.  each decorator will be applied as a filter in the order its
+   * been defined in the json file
+   */
+  @BeanProperty
+  var decorators: Array[String] = null
+
+  /**
+   * tcpConnectTimeout measured in seconds
+   */
   @BeanProperty
   var tcpConnectTimeout: Int = 5
 
+  /**
+   * handles deflate and gzip decompression.
+   *
+   * Note: i believe we want this to true so we can keep the data compressed as long as possible
+   */
   @BeanProperty
-  var decompressionEnabled: Boolean = true
+  var decompressionEnabled: Boolean = false
 
+  /**
+   * measured in mb
+   */
   @BeanProperty
   var maxRequestSize: Int = 10
 
+  /**
+   * measured in mb
+   */
   @BeanProperty
   var maxResponseSize: Int = 10
 
@@ -158,7 +179,7 @@ class HttpProxyTrail extends Trail[Request, Response] {
     }
   }
 
-  def start(): Future[Unit] = {
+  def start(frontier: Frontier[Request, Response]): Future[Unit] = {
     Future.value {
       synchronized {
         if (service == null) {

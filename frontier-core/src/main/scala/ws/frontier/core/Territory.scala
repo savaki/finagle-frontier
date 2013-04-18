@@ -19,7 +19,7 @@ class Territory[IN, OUT] {
   var name: String = null
 
   @BeanProperty
-  var trail: Trail[Request, Response] = null
+  var trail: Trail[IN, OUT] = null
 
   private[this] var server: Server = null
 
@@ -37,14 +37,15 @@ class Territory[IN, OUT] {
     log("}")
   }
 
-  def start(): Future[Int] = {
-    trail.start().map {
+  def start(frontier: Frontier[IN, OUT]): Future[Int] = {
+    trail.start(frontier).map {
       unit =>
+        val httpTrail: Trail[Request, Response] = trail.asInstanceOf[Trail[Request, Response]]
         server = ServerBuilder()
           .name("Frontier-%s" format port)
           .codec(RichHttp[Request](Http()))
           .bindTo(new InetSocketAddress(port))
-          .build(new TrailService[Request, Response](trail))
+          .build(new TrailService[Request, Response](httpTrail))
         port
     }
   }
