@@ -8,12 +8,12 @@ import com.twitter.util.Future
 import java.util.HashMap
 import scala.beans.BeanProperty
 import java.util.regex.Pattern
-import ws.frontier.core.util.Banner
+import ws.frontier.core.util.{Logging, Banner}
 
 /**
  * @author matt.ho@gmail.com
  */
-class Decorator extends Filter[Request, Response, Request, Response] {
+class Decorator extends Filter[Request, Response, Request, Response] with Logging {
   @BeanProperty
   var name: String = null
 
@@ -24,6 +24,10 @@ class Decorator extends Filter[Request, Response, Request, Response] {
   @BeanProperty
   var uri: String = null
 
+  @JsonProperty("trail_id")
+  @BeanProperty
+  var trailId: String = null
+
   @BeanProperty
   var context: Array[ContextEntryBuilder] = null
 
@@ -32,9 +36,9 @@ class Decorator extends Filter[Request, Response, Request, Response] {
 
   private[this] var excludePatterns: Array[Pattern] = null
 
-  private[core] var template: Template = null
+  private[core] var template: Option[Template] = None
 
-  private[core] var territory: Territory[Request, Response] = null
+  private[core] var trail: Trail[Request, Response] = null
 
   private[core] var headerContexts: Array[HeaderContext] = null
 
@@ -56,12 +60,34 @@ class Decorator extends Filter[Request, Response, Request, Response] {
     log("}")
   }
 
+  protected[core] def isDecorated(request: Request, response: Response): Boolean = {
+    var result = true
+
+    if (result && template.isDefined == false) {
+      debug("no template defined, skipping decorator step")
+      result = false
+    }
+
+    val actualContentType: String = response.getHeader(Decorator.CONTENT_TYPE)
+    if (result && (contentType == null || contentType.equalsIgnoreCase(actualContentType)) == false) {
+      debug("content-type doesn't match defined content type")
+      result = false
+    }
+
+    if (result && request.getHeader(Decorator.DECORATOR_HEADER) != null) {
+      debug("decorator requests are not further decorated")
+      result = false
+    }
+
+    result
+  }
+
   def apply(request: Request, service: Service[Request, Response]): Future[Response] = {
     val uriContexts: Future[Seq[(String, String)]] = getUriContexts(request)
 
     service(request).map {
       response => {
-        if (contentType != null && contentType.equalsIgnoreCase(response.getHeader(Decorator.CONTENT_TYPE))) {
+        if (isDecorated(request, response)) {
           val headerContexts: Seq[(String, String)] = getHeaderContexts(response)
           val requestContext = newContext(uriContexts.get() ++ headerContexts)
           merge(response, requestContext)
@@ -92,7 +118,7 @@ class Decorator extends Filter[Request, Response, Request, Response] {
   def getUriContexts(request: Request): Future[Seq[(String, String)]] = {
     if (uriContexts.length > 0 && !isExcluded(request)) {
       Future.collect {
-        uriContexts.map(_.apply(territory))
+        uriContexts.map(_.apply(trail))
       }
     } else {
       Future.value(Seq())
@@ -100,6 +126,10 @@ class Decorator extends Filter[Request, Response, Request, Response] {
   }
 
   def isExcluded(request: Request): Boolean = {
+    if( request.getHeader(Decorator.DECORATOR_HEADER) != null ) {
+      return true
+    }
+
     val uri = request.uri
     var index = 0
     while (index < excludePatterns.length) {
@@ -113,7 +143,7 @@ class Decorator extends Filter[Request, Response, Request, Response] {
 
   def merge(response: Response, requestContext: HashMap[String, String]): Response = {
     requestContext.put("content", response.getContentString())
-    val html: String = template(requestContext)
+    val html: String = template.get(requestContext)
     val bytes: Array[Byte] = html.getBytes("UTF-8")
     response.removeHeader("Content-Length")
     response.addHeader("Content-Length", bytes.length.toString)
@@ -121,9 +151,9 @@ class Decorator extends Filter[Request, Response, Request, Response] {
     response
   }
 
-  def getTemplateSource(territory: Territory[Request, Response]): Future[String] = {
+  def getTemplateSource(trail: Trail[Request, Response]): Future[String] = {
     val request = Request(uri)
-    val future: Future[Response] = territory.getTrail.apply(request).getOrElse {
+    val future: Future[Response] = trail(request).getOrElse {
       throw new RuntimeException("unable to load template, %s, from trails" format uri)
     }
 
@@ -136,9 +166,10 @@ class Decorator extends Filter[Request, Response, Request, Response] {
     Decorator.handlebars.compile(hbs)
   }
 
-  def initialize(territory: Territory[Request, Response]): Future[Unit] = {
+  def initialize[IN, OUT](registry: Registry[IN, OUT]): Future[Unit] = {
     excludePatterns = Option(exclude)
       .getOrElse(Array[String]())
+      .map(_.replaceAllLiterally("*", ".*"))
       .map(_.r.pattern)
 
     headerContexts = Option(context)
@@ -153,14 +184,23 @@ class Decorator extends Filter[Request, Response, Request, Response] {
       .filter(_ != None)
       .map(_.get)
 
-    getTemplateSource(territory).map {
-      hbs => template = compileTemplate(hbs)
+    trail = registry.trail(trailId).getOrElse {
+      throw new RuntimeException("unable to load template!  no trail found with id, %s" format trailId)
+    }.asInstanceOf[Trail[Request, Response]]
+
+    getTemplateSource(trail).map {
+      hbs => {
+        warn("loaded template, %s, from trail [id: %s]" format(uri, trailId))
+        template = Option(compileTemplate(hbs))
+      }
     }
   }
 }
 
 object Decorator {
   val CONTENT_TYPE = "Content-Type"
+
+  val DECORATOR_HEADER = "X-Decorator"
 
   private[core] val handlebars: Handlebars = new Handlebars()
 }

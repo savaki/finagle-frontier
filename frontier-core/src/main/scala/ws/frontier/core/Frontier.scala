@@ -5,12 +5,12 @@ import java.util.{Map => JMap}
 import org.joda.time.DateTime
 import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
-import ws.frontier.core.util.Banner
+import ws.frontier.core.util.{Logging, Banner}
 
 /**
  * @author matt.ho@gmail.com
  */
-class Frontier[IN, OUT] extends Registry[IN, OUT] {
+class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   @BeanProperty
   var decorators: JMap[String, Decorator] = null
 
@@ -31,7 +31,11 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] {
   }
 
   def trail(id: String): Option[Trail[IN, OUT]] = {
-    trails.get(id)
+    if (id == null) {
+      Some(territories.head.trail)
+    } else {
+      trails.get(id)
+    }
   }
 
   protected def eachTerritory(function: Territory[IN, OUT] => Future[Unit]): Future[Unit] = {
@@ -60,20 +64,29 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] {
   }
 
   def initialize(): Future[Unit] = {
-    eachTerritory(_.initialize())
+    info("initializing Frontier")
+
+    // territories need to be initialized PRIOR to initializing the decorators
+    eachTerritory(_.initialize(this)).map {
+      unit => decorators.values().foreach(decorator => decorator.initialize(this))
+    }
   }
 
   /**
    * @return the list of ports that we were bound to
    */
   def start(): Future[Seq[Int]] = {
+    info("Frontier started at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
     Future.collect {
       territories.map(_.start(this))
     }
   }
 
   def shutdown(): Future[Unit] = {
-    eachTerritory(_.shutdown())
+    info("Shutdown requested at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
+    eachTerritory(_.shutdown()).map {
+      unit => info("Shutdown completed at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
+    }
   }
 }
 

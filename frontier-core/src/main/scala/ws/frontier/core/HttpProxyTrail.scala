@@ -3,7 +3,7 @@ package ws.frontier.core
 import com.twitter.finagle.http.{RichHttp, Http, Response, Request}
 import com.twitter.util.Future
 import beans.BeanProperty
-import com.twitter.finagle.Service
+import com.twitter.finagle.{Filter, Service}
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.conversions.time._
 import com.twitter.conversions.storage._
@@ -118,7 +118,9 @@ class HttpProxyTrail extends Trail[Request, Response] {
   }
 
   /**
-   * HttpProxyTrail provides the basic unit of work for HTTP based trails.
+   * HttpProxyTrail provides the basic unit of work for HTTP based trails.  The intent is for this to behave just like
+   * a standard Finagle Service with one gotcha.  Rather than return Future[Response], this returns
+   * Future[Option[Response]].  Doing this allows #apply to say "this request isn't for me, pass it to the next guy"
    *
    * Note: this currently doesn't support chunked or streaming calls
    *
@@ -126,9 +128,11 @@ class HttpProxyTrail extends Trail[Request, Response] {
    */
   def apply(request: Request): Option[Future[Response]] = {
     if (matches(request)) {
+      debug("%s %s", request.getMethod(), request.getUri())
       request.removeHeader("host")
       request.addHeader("host", host)
       Some(service(request))
+
     } else {
       None
     }
@@ -180,35 +184,71 @@ class HttpProxyTrail extends Trail[Request, Response] {
     }
   }
 
-  def start(registry: Registry[Request, Response]): Future[Unit] = {
-    Future.value {
-      synchronized {
-        if (service == null) {
-          val builder = ClientBuilder()
-            .codec(RichHttp[Request](buildCodec()))
-            .hosts(hosts.mkString(","))
-            .timeout(timeout.seconds)
-            .tcpConnectTimeout(tcpConnectTimeout.seconds)
-            .hostConnectionLimit(hostConnectionLimit)
+  /**
+   * construct a service that chains all the defined filters (like decorators) in front of the base service
+   *
+   * @param registry where filters can be found
+   * @param baseService the base service to be wrapped
+   * @return the wrapped with filters service
+   */
+  def applyFilters(registry: Registry[Request, Response], baseService: Service[Request, Response]): Service[Request, Response] = {
+    val filterSeq: Seq[Filter[Request, Response, Request, Response]] = Option(decorators)
+      .getOrElse(Array()).toSeq // ensure we have a valid Seq[String]
+      .map(name => registry.decorator(name).get) // Seq[String] => Seq[Decorator]
 
-          if (enableTLS) {
-            val tlsHosts: String = hosts.map(_.split(":").head).mkString(",") // strip off port number
-            service = builder.tls(tlsHosts).build()
+    filterSeq.foldRight(baseService)((a, b) => a andThen b)
+  }
 
-          } else {
-            service = builder.build()
-          }
-        }
-      }
+  /**
+   * constructs a fully configured service e.g. baseService with filters applied
+   *
+   * @param registry a storehouse for filters that can be searched by name
+   * @return the fully configured service
+   */
+  protected def buildService(registry: Registry[Request, Response]): Service[Request, Response] = {
+    val baseService: Service[Request, Response] = buildBaseService()
+    applyFilters(registry, baseService)
+  }
+
+  /**
+   * @return a vanilla service devoid of any filters.
+   */
+  protected def buildBaseService(): Service[Request, Response] = {
+    val builder = ClientBuilder()
+      .codec(RichHttp[Request](buildCodec()))
+      .hosts(hosts.mkString(","))
+      .timeout(timeout.seconds)
+      .tcpConnectTimeout(tcpConnectTimeout.seconds)
+      .hostConnectionLimit(hostConnectionLimit)
+
+    if (enableTLS) {
+      val tlsHosts: String = hosts.map(_.split(":").head).mkString(",") // strip off port number
+      builder.tls(tlsHosts).build()
+
+    } else {
+      builder.build()
     }
   }
 
+  /**
+   * utility method to build the Http codec with all the extra parameters we may want
+   */
   def buildCodec(): Http = {
     val codec: Http = Http()
     codec.decompressionEnabled(true)
     codec.maxRequestSize(maxRequestSize.megabytes)
     codec.maxResponseSize(maxResponseSize.megabytes)
     codec
+  }
+
+  def start(registry: Registry[Request, Response]): Future[Unit] = {
+    Future.value {
+      synchronized {
+        if (service == null) {
+          service = buildService(registry)
+        }
+      }
+    }
   }
 
   def shutdown(): Future[Unit] = {

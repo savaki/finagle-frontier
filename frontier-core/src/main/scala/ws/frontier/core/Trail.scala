@@ -2,7 +2,7 @@ package ws.frontier.core
 
 import com.twitter.util.Future
 import beans.BeanProperty
-import ws.frontier.core.util.Banner
+import ws.frontier.core.util.{Logging, Banner}
 
 /**
  * Trails represent conditional executions of Finagle services.  Unlike a Finagle service which _must_ process calls to
@@ -10,7 +10,7 @@ import ws.frontier.core.util.Banner
  *
  * @author matt
  */
-abstract class Trail[IN, OUT] {
+abstract class Trail[IN, OUT] extends Logging {
   /**
    * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
    */
@@ -34,6 +34,23 @@ abstract class Trail[IN, OUT] {
   def start(registry: Registry[IN, OUT]): Future[Unit]
 
   def shutdown(): Future[Unit]
+}
+
+class EmptyTrail[IN, OUT] extends Trail[IN, OUT] {
+  /**
+   * @return None if this trail cannot handled the provided request; Some(Future[OUT]) if the action was handled
+   */
+  def apply(request: IN): Option[Future[OUT]] = {
+    throw new UnsupportedOperationException("#apply not implemented in the EmptyTrail")
+  }
+
+  def start(registry: Registry[IN, OUT]): Future[Unit] = {
+    Future()
+  }
+
+  def shutdown(): Future[Unit] = {
+    Future()
+  }
 }
 
 /**

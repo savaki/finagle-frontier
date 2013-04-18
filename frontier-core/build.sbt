@@ -35,7 +35,8 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
 
 {
   libraryDependencies ++= Seq(
-    "joda-time" % "joda-time" % "1.6.2" withSources()
+    "joda-time" % "joda-time" % "1.6.2" withSources(),
+    "ch.qos.logback" % "logback-classic" % "1.0.11" withSources()
   )
 }
 

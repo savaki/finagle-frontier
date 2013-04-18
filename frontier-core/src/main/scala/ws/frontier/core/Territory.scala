@@ -7,12 +7,12 @@ import com.twitter.finagle.http.RichHttp
 import com.twitter.finagle.http.{Response, Http, Request}
 import com.twitter.util.Future
 import java.net.InetSocketAddress
-import ws.frontier.core.util.Banner
+import ws.frontier.core.util.{Logging, Banner}
 
 /**
  * @author matt.ho@gmail.com
  */
-class Territory[IN, OUT] {
+class Territory[IN, OUT] extends Logging {
   @BeanProperty
   var port: Int = 9080
 
@@ -24,7 +24,7 @@ class Territory[IN, OUT] {
 
   private[this] var server: Server = null
 
-  def initialize(): Future[Unit] = trail.initialize()
+  def initialize(registry: Registry[IN, OUT]): Future[Unit] = trail.initialize()
 
   def banner(log: Banner) {
     log("Territory: {")

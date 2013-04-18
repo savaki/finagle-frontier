@@ -61,7 +61,7 @@ class TerritoryTest extends TestSuite {
 
     val registry: Registry[Request, Response] = new EmptyRegistry[Request, Response]()
 
-    territory.initialize().get()
+    territory.initialize(registry).get()
     territory.start(registry).get()
     val response: Response = client(Request("/")).get()
     response.statusCode should be(301)

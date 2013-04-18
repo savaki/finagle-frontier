@@ -13,7 +13,7 @@ import ws.frontier.core.converter.FrontierMapper
 class DecoratorTest extends TestSuite {
   val decorator = {
     val instance = new Decorator() {
-      override def getTemplateSource(territory: Territory[Request, Response]): Future[String] = {
+      override def getTemplateSource(trail: Trail[Request, Response]): Future[String] = {
         Future.value( """<div>{{content}}</div>""")
       }
     }
