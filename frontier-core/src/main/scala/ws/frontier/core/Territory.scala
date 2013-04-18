@@ -7,6 +7,7 @@ import com.twitter.finagle.http.RichHttp
 import com.twitter.finagle.http.{Response, Http, Request}
 import com.twitter.util.Future
 import java.net.InetSocketAddress
+import ws.frontier.core.util.Banner
 
 /**
  * @author matt.ho@gmail.com

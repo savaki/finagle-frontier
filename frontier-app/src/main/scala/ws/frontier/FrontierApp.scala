@@ -3,9 +3,10 @@ package ws.frontier
 import com.twitter.finagle.http.{Request, Response}
 import java.io.File
 import org.apache.commons.cli.{HelpFormatter, CommandLine, PosixParser, Options}
-import ws.frontier.core.{Banner, Frontier}
+import ws.frontier.core.{Frontier}
 import ws.frontier.core.converter.FrontierMapper
 import com.twitter.util.Future
+import ws.frontier.core.util.Banner
 
 /**
  * @author matt

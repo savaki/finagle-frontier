@@ -5,6 +5,7 @@ import java.util.{Map => JMap}
 import org.joda.time.DateTime
 import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
+import ws.frontier.core.util.Banner
 
 /**
  * @author matt.ho@gmail.com

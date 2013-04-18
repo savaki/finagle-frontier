@@ -10,6 +10,7 @@ import com.twitter.conversions.storage._
 import java.util.regex.Pattern
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.text.NumberFormat
+import ws.frontier.core.util.Banner
 
 /**
  * @author matt.ho@gmail.com

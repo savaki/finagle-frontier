@@ -8,6 +8,7 @@ import com.twitter.util.Future
 import java.util.HashMap
 import scala.beans.BeanProperty
 import java.util.regex.Pattern
+import ws.frontier.core.util.Banner
 
 /**
  * @author matt.ho@gmail.com

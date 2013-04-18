@@ -2,6 +2,7 @@ package ws.frontier.core
 
 import com.twitter.util.Future
 import beans.BeanProperty
+import ws.frontier.core.util.Banner
 
 /**
  * Trails represent conditional executions of Finagle services.  Unlike a Finagle service which _must_ process calls to

@@ -1,4 +1,4 @@
-package ws.frontier.core
+package ws.frontier.core.util
 
 /**
  * @author matt
