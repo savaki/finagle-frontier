@@ -3,7 +3,7 @@ package ws.frontier
 import com.twitter.finagle.http.{Request, Response}
 import java.io.File
 import org.apache.commons.cli.{HelpFormatter, CommandLine, PosixParser, Options}
-import ws.frontier.core.{Frontier}
+import ws.frontier.core.{FrontierOptions, Frontier}
 import ws.frontier.core.converter.FrontierMapper
 import com.twitter.util.Future
 import ws.frontier.core.util.Banner
@@ -13,8 +13,9 @@ import ws.frontier.core.util.Banner
  */
 
 object FrontierApp {
-  val options = {
+  val cliOptions = {
     val options: Options = new Options()
+    options.addOption("n", "no-cache", false, "don't cache templates")
     options.addOption("b", "banner", false, "display banner messages on startup")
     options.addOption("c", "config", true, "json configuration file")
     options.addOption("h", "help", false, "usage")
@@ -24,14 +25,14 @@ object FrontierApp {
   def usage() {
     val formatter: HelpFormatter = new HelpFormatter
     println()
-    formatter.printHelp("java -jar frontier.jar", options, true)
+    formatter.printHelp("java -jar frontier.jar", cliOptions, true)
     println()
     System.exit(1)
   }
 
   def main(args: Array[String]) {
     val parser = new PosixParser()
-    val cli: CommandLine = parser.parse(options, args)
+    val cli: CommandLine = parser.parse(cliOptions, args)
 
     if (cli.hasOption("help")) {
       usage()
@@ -48,7 +49,12 @@ object FrontierApp {
     val log: Banner = new Banner
     val frontier = FrontierMapper.readValue[Frontier[Request, Response]](config)
 
-    frontier.initialize()
+    var frontierOptions = FrontierOptions()
+    if (cli.hasOption("no-cache")) {
+      frontierOptions = frontierOptions.copy(cacheTemplates = false)
+    }
+
+    frontier.initialize(frontierOptions)
 
     if (cli.hasOption("banner")) {
       frontier.banner(log)

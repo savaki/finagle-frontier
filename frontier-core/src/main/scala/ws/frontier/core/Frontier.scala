@@ -21,13 +21,13 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   @BeanProperty
   var territories: Array[Territory[IN, OUT]] = null
 
-  @JsonProperty("template-factory")
+  @JsonProperty("template-factories")
   @BeanProperty
-  var templateFactoryKlass: String = null
+  var templateFactoriesKlass: Array[String] = null
 
   var trails: Map[String, Trail[IN, OUT]] = Map()
 
-  var templateFactory: TemplateFactory = null
+  var templateFactories: Array[TemplateFactory] = null
 
   private[core] def withTrails(trails: JMap[_, _]): Frontier[IN, OUT] = {
     this.trails = trails
@@ -73,20 +73,32 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
     }
   }
 
-  def initialize(): Future[Unit] = {
-    info("initializing Frontier")
+  def initialize(options: FrontierOptions): Future[Unit] = {
 
-    /**
-     * instantiate the template factory to use.  for now, we only allow one template factory.  in future, we may allow
-     * multiple template factories
-     */
-    val klass = Option(templateFactoryKlass).getOrElse(DEFAULT_TEMPLATE_FACTORY)
-    templateFactory = Class.forName(klass).newInstance().asInstanceOf[TemplateFactory]
-
-    // territories need to be initialized PRIOR to initializing the decorators
-    eachTerritory(_.initialize(this)).map {
-      unit => decorators.values().foreach(decorator => decorator.initialize(this))
+    def initializeTemplateFactories() {
+      /**
+       * instantiate the template factory to use.  for now, we only allow one template factory.  in future, we may allow
+       * multiple template factories
+       */
+      templateFactories = Option(templateFactoriesKlass).getOrElse(Array[String]()).map {
+        klass => {
+          val factory: TemplateFactory = Class.forName(klass).newInstance().asInstanceOf[TemplateFactory]
+          info("loading TemplateFactory: %s" format factory.name)
+          factory
+        }
+      }
     }
+
+    def initializeTerritories(): Future[Unit] = {
+      // territories need to be initialized PRIOR to initializing the decorators
+      eachTerritory(_.initialize(this)).map {
+        unit => decorators.values().foreach(decorator => decorator.initialize(this, options))
+      }
+    }
+
+    info("initializing Frontier")
+    initializeTemplateFactories()
+    initializeTerritories()
   }
 
   /**
@@ -107,3 +119,4 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   }
 }
 
+case class FrontierOptions(cacheTemplates: Boolean = true)

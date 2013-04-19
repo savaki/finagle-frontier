@@ -7,6 +7,7 @@ object Build extends Build {
   lazy val frontierVersion = "0.1-SNAPSHOT"
 
   val commons_cli = "commons-cli" % "commons-cli" % "1.2" withSources()
+  val logback = "ch.qos.logback" % "logback-classic" % "1.0.11" withSources()
 
   /**
    * the interaction between sbt and the assembly plugin is very fragile and requires us to define the project here
@@ -17,11 +18,11 @@ object Build extends Build {
     organization := "ws.frontier",
     name := "frontier-app",
     scalaVersion := "2.10.1",
-    libraryDependencies ++= Seq(commons_cli)
+    libraryDependencies ++= Seq(commons_cli, logback)
   )
 
   lazy val all = Project(id = "all",
-    base = file(".")) aggregate(core, app, handlebars)
+    base = file(".")) aggregate(core, app, velocity)
 
   lazy val app = Project(id = "app",
     base = file("frontier-app"),
@@ -33,16 +34,23 @@ object Build extends Build {
         case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
         case _ => MergeStrategy.first
       },
+      /**
+       * nasty hack to force slf4j-jdk14 to be excluded from the packing.  we need to do this because one of our
+       * projects includes slf4j already
+       */
+      excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+        cp filter {_.data.getName == "slf4j-jdk14-1.6.1.jar"}
+      },
       jarName in assembly := "frontier-%s.jar".format(frontierVersion),
       mainClass in assembly := Some("ws.frontier.FrontierApp")
     )
-  ) dependsOn(core, handlebars, test % "compile->test")
+  ) dependsOn(core, velocity, test % "compile->test")
 
   lazy val core = Project(id = "core",
     base = file("frontier-core")) dependsOn (test % "compile->test")
 
-  lazy val handlebars = Project(id = "handlebars",
-    base = file("frontier-handlebars")) dependsOn (core, test % "compile->test")
+  lazy val velocity = Project(id = "velocity",
+    base = file("frontier-velocity")) dependsOn (core, test % "compile->test")
 
   lazy val test = Project(id = "test",
     base = file("frontier-test"))

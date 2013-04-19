@@ -1,0 +1,41 @@
+{
+  "template-factories": ["ws.frontier.template.velocity.VelocityTemplateFactory"],
+
+  "decorators": {
+    "default": {
+      "content_type": "text/html",
+      "type": "velocity",
+      "uri": "file:frontier-core/src/test/resources/sample.vm",
+      "exclude": ["*.png", "*.gif", "*.jpg", "*.pdf"],
+      "context": [
+        {
+          "name": "session",
+          "uri": "/session/header",
+          "timeout": 50
+        },
+        {
+          "name": "title",
+          "header": "X-Title"
+        }
+      ]
+    }
+  },
+  "territories": [
+    {
+      "port": 9080,
+      "trail": [
+        {
+          "locations": ["*", "/about/*"],
+          "decorators": ["default"],
+          "hosts": ["www.loyal3.com:80"],
+          "tags": ["r194"]
+        },
+        {
+          "hosts": ["csop.loyal3.com:443"],
+          "enable_tls": true,
+          "tags": ["r192"]
+        }
+      ]
+    }
+  ]
+}

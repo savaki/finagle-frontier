@@ -9,10 +9,9 @@ import java.net.{URI, URLConnection}
 import java.util.HashMap
 import java.util.regex.Pattern
 import scala.beans.BeanProperty
-import scala.collection.JavaConversions._
 import scala.io.Source
-import ws.frontier.core.util.{Logging, Banner}
 import ws.frontier.core.template.{TemplateFactory, Template}
+import ws.frontier.core.util.{Logging, Banner}
 
 /**
  * @author matt.ho@gmail.com
@@ -37,6 +36,12 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   @BeanProperty
   var exclude: Array[String] = null
+
+  @JsonProperty("type")
+  @BeanProperty
+  var kind: String = null
+
+  private[this] var options: FrontierOptions = null
 
   private[this] var templateFactory: TemplateFactory = null
 
@@ -88,9 +93,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     service(request).map {
       response => {
         if (isDecorated(request, response)) {
-          val headerContexts: Seq[(String, String)] = getHeaderContexts(response)
-          val requestContext = newContext(uriContexts.get() ++ headerContexts)
-          merge(response, requestContext)
+          merge(response, uriContexts)
 
         } else {
           response
@@ -141,8 +144,15 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     false
   }
 
-  def merge(response: Response, requestContext: HashMap[String, String]): Response = {
+  def merge(response: Response, uriContexts: Future[Seq[(String, String)]]): Response = {
+    if (options.cacheTemplates == false) {
+      updateTemplate()
+    }
+
+    val headerContexts: Seq[(String, String)] = getHeaderContexts(response)
+    val requestContext = newContext(uriContexts.get() ++ headerContexts)
     requestContext.put("content", response.getContentString())
+
     val html: String = template.get(requestContext)
     val bytes: Array[Byte] = html.getBytes("UTF-8")
     response.removeHeader("Content-Length")
@@ -198,7 +208,9 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     templateFactory.compile(hbs)
   }
 
-  def initialize[IN, OUT](registry: Registry[IN, OUT]): Future[Unit] = {
+  def initialize[IN, OUT](registry: Registry[IN, OUT], options: FrontierOptions = FrontierOptions()): Future[Unit] = {
+    require(options != null, "Illegal attempt to initialize Decorator with a null FrontierOptions")
+
     excludePatterns = Option(exclude)
       .getOrElse(Array[String]())
       .map(_.replaceAllLiterally("*", ".*"))
@@ -216,10 +228,18 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
       .filter(_ != None)
       .map(_.get)
 
-    templateFactory = registry.templateFactory
+    templateFactory = Option(kind)
+      .map(k => registry.templateFactories.find(_.name.equalsIgnoreCase(k)).getOrElse(throw new RuntimeException("no template factory named %s registered!" format k)))
+      .getOrElse(registry.templateFactories.head)
 
     trail = registry.trail(trailId).get.asInstanceOf[Trail[Request, Response]]
 
+    this.options = options
+
+    updateTemplate()
+  }
+
+  def updateTemplate[OUT, IN](): Future[Unit] = {
     fetchTemplateSource().map {
       hbs => {
         warn("loaded template, %s, from trail [id: %s]" format(uri, trailId))

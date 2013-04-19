@@ -1,13 +1,13 @@
 package ws.frontier.core.template
 
-import java.util
+import java.util.{Map => JMap}
 
 /**
  * @author matt
  */
 
 trait Template {
-  def apply(context: util.HashMap[String, String]): String
+  def apply(context: JMap[String, String]): String
 }
 
 object Template {
@@ -18,15 +18,26 @@ object Template {
 }
 
 trait TemplateFactory {
+  /**
+   * @return the unique name of this template factory e.g. default, velocity
+   */
+  def name: String
+
   def compile(text: String): Template
 }
 
 class PassThroughTemplateFactory extends TemplateFactory {
+
+  /**
+   * @return the unique name of this template factory e.g. default, velocity
+   */
+  def name = "default"
+
   def compile(text: String): Template = new PassThroughTemplate
 }
 
 class PassThroughTemplate extends Template {
-  def apply(context: util.HashMap[String, String]): String = {
+  def apply(context: JMap[String, String]): String = {
     context.get("content")
   }
 }

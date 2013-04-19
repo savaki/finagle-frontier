@@ -12,6 +12,6 @@ import com.twitter.finagle.http.{Request, Response}
 class SampleTest extends TestSuite {
   "#frontier" should "proxy services for multiple websites" in {
     val frontier = FrontierMapper.readValue[Frontier[Request, Response]](new File("frontier-core/src/test/resources/sample.json"))
-    frontier.initialize()
+    frontier.initialize(FrontierOptions())
   }
 }

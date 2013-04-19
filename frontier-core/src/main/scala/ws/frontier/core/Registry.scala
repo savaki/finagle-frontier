@@ -20,7 +20,7 @@ trait Registry[IN, OUT] {
    */
   def trail(id: String = null): Option[Trail[IN, OUT]]
 
-  def templateFactory: TemplateFactory
+  def templateFactories: Array[TemplateFactory]
 }
 
 class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
@@ -30,5 +30,5 @@ class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
     Option(new EmptyTrail[IN, OUT])
   }
 
-  val templateFactory: TemplateFactory = new PassThroughTemplateFactory
+  val templateFactories: Array[TemplateFactory] = Array(new PassThroughTemplateFactory)
 }

@@ -8,7 +8,7 @@ object SampleApp {
   def main(args: Array[String]) {
     FrontierApp.main(Array(
       "--config",
-      "frontier-core/src/test/resources/sample.json",
+      "dev.json",
       "--banner"
     ))
   }
