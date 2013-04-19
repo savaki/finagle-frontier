@@ -1,5 +1,7 @@
 package ws.frontier.core
 
+import ws.frontier.core.template.{PassThroughTemplateFactory, TemplateFactory}
+
 /**
  * @author matt
  */
@@ -17,6 +19,8 @@ trait Registry[IN, OUT] {
    * @return the trail that you're looking for
    */
   def trail(id: String = null): Option[Trail[IN, OUT]]
+
+  def templateFactory: TemplateFactory
 }
 
 class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
@@ -25,4 +29,6 @@ class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
   def trail(id: String): Option[Trail[IN, OUT]] = {
     Option(new EmptyTrail[IN, OUT])
   }
+
+  val templateFactory: TemplateFactory = new PassThroughTemplateFactory
 }

@@ -1,15 +1,12 @@
 package ws.frontier.core
 
-import ws.frontier.test.TestSuite
+import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Response, Request}
 import com.twitter.util.Future
-import com.twitter.finagle.Service
+import java.io.File
 import org.jboss.netty.handler.codec.http.{HttpResponseStatus, HttpVersion}
 import ws.frontier.core.converter.FrontierMapper
-import java.io.File
-import com.github.jknack.handlebars.Template
-import java.util.HashMap
-import com.github.jknack.handlebars.Handlebars.SafeString
+import ws.frontier.test.TestSuite
 
 /**
  * @author matt.ho@gmail.com
@@ -100,15 +97,5 @@ class DecoratorTest extends TestSuite {
     val decorator = new Decorator
     decorator.uri = new File("frontier-core/src/test/resources/fetchTemplateFromURL.txt").toURI.toString
     decorator.fetchTemplateFromURI().get should include("valid")
-  }
-
-  "#merge" should "not escape special characters like < and >" in {
-    val hbs = """{{content}}"""
-    val template: Template = Decorator.handlebars.compile(hbs)
-    val context = new HashMap[String, SafeString]()
-    val content: String = """<a href="http://google.com">click me</a>"""
-    context.put("content", new SafeString(content))
-    val html: String = template(context)
-    html should include(content)
   }
 }

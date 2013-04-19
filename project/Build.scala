@@ -21,22 +21,28 @@ object Build extends Build {
   )
 
   lazy val all = Project(id = "all",
-    base = file(".")) aggregate(core, app)
+    base = file(".")) aggregate(core, app, handlebars)
 
   lazy val app = Project(id = "app",
     base = file("frontier-app"),
     settings = appSettings ++ assemblySettings ++ Seq(
       mergeStrategy in assembly := {
+        /**
+         * need to explicitly handle how content gets merged together to avoid entry duplication
+         */
         case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
         case _ => MergeStrategy.first
       },
       jarName in assembly := "frontier-%s.jar".format(frontierVersion),
       mainClass in assembly := Some("ws.frontier.FrontierApp")
     )
-  ) dependsOn(core, test % "compile->test")
+  ) dependsOn(core, handlebars, test % "compile->test")
 
   lazy val core = Project(id = "core",
     base = file("frontier-core")) dependsOn (test % "compile->test")
+
+  lazy val handlebars = Project(id = "handlebars",
+    base = file("frontier-handlebars")) dependsOn (core, test % "compile->test")
 
   lazy val test = Project(id = "test",
     base = file("frontier-test"))

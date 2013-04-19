@@ -1,19 +1,18 @@
 package ws.frontier.core
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.github.jknack.handlebars.{ParserFactory, Template, Handlebars}
 import com.twitter.finagle.http.{Response, Request}
 import com.twitter.finagle.{Service, Filter}
 import com.twitter.util.Future
-import java.util.HashMap
-import scala.beans.BeanProperty
-import java.util.regex.Pattern
-import ws.frontier.core.util.{Logging, Banner}
-import java.net.{URI, URLConnection, URL}
 import java.io.InputStream
-import scala.io.Source
-import com.github.jknack.handlebars.Handlebars.SafeString
+import java.net.{URI, URLConnection}
+import java.util.HashMap
+import java.util.regex.Pattern
+import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
+import scala.io.Source
+import ws.frontier.core.util.{Logging, Banner}
+import ws.frontier.core.template.{TemplateFactory, Template}
 
 /**
  * @author matt.ho@gmail.com
@@ -39,15 +38,17 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
   @BeanProperty
   var exclude: Array[String] = null
 
+  private[this] var templateFactory: TemplateFactory = null
+
   private[this] var excludePatterns: Array[Pattern] = null
 
-  private[core] var template: Option[Template] = None
+  private[this] var template: Option[Template] = None
 
-  private[core] var trail: Trail[Request, Response] = null
+  private[this] var trail: Trail[Request, Response] = null
 
-  private[core] var headerContexts: Array[HeaderContext] = null
+  private[this] var headerContexts: Array[HeaderContext] = null
 
-  private[core] var uriContexts: Array[UriContext] = null
+  private[this] var uriContexts: Array[UriContext] = null
 
   def banner(log: Banner) {
     log()
@@ -142,13 +143,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   def merge(response: Response, requestContext: HashMap[String, String]): Response = {
     requestContext.put("content", response.getContentString())
-
-    val safeContext: HashMap[String, SafeString] = new HashMap[String, SafeString]()
-    requestContext.foreach {
-      pair => safeContext.put(pair._1, new SafeString(pair._2))
-    }
-
-    val html: String = template.get(safeContext)
+    val html: String = template.get(requestContext)
     val bytes: Array[Byte] = html.getBytes("UTF-8")
     response.removeHeader("Content-Length")
     response.addHeader("Content-Length", bytes.length.toString)
@@ -200,7 +195,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
   }
 
   def compileTemplate(hbs: String): Template = {
-    Decorator.handlebars.compile(hbs)
+    templateFactory.compile(hbs)
   }
 
   def initialize[IN, OUT](registry: Registry[IN, OUT]): Future[Unit] = {
@@ -221,9 +216,11 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
       .filter(_ != None)
       .map(_.get)
 
+    templateFactory = registry.templateFactory
+
     trail = registry.trail(trailId).get.asInstanceOf[Trail[Request, Response]]
 
-    fetchTemplateSource.map {
+    fetchTemplateSource().map {
       hbs => {
         warn("loaded template, %s, from trail [id: %s]" format(uri, trailId))
         template = Option(compileTemplate(hbs))
@@ -236,11 +233,6 @@ object Decorator {
   val CONTENT_TYPE = "Content-Type"
 
   val DECORATOR_HEADER = "X-Decorator"
-
-  private[core] val handlebars: Handlebars = {
-    val compiler: Handlebars = new Handlebars()
-    compiler
-  }
 }
 
 

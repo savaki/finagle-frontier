@@ -27,13 +27,6 @@ resolvers += "Twitter Repo" at "http://maven.twttr.com"
 }
 
 {
-  val handlebarsVersion = "0.11.0"
-  libraryDependencies ++= Seq(
-    "com.github.jknack" % "handlebars" % handlebarsVersion withSources()
-  )
-}
-
-{
   libraryDependencies ++= Seq(
     "joda-time" % "joda-time" % "1.6.2" withSources(),
     "ch.qos.logback" % "logback-classic" % "1.0.11" withSources()

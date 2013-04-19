@@ -6,18 +6,28 @@ import org.joda.time.DateTime
 import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
 import ws.frontier.core.util.{Logging, Banner}
+import ws.frontier.core.template.{PassThroughTemplateFactory, TemplateFactory}
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * @author matt.ho@gmail.com
  */
 class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
+  val DEFAULT_TEMPLATE_FACTORY: String = classOf[PassThroughTemplateFactory].getCanonicalName
+
   @BeanProperty
   var decorators: JMap[String, Decorator] = null
 
   @BeanProperty
   var territories: Array[Territory[IN, OUT]] = null
 
+  @JsonProperty("template-factory")
+  @BeanProperty
+  var templateFactoryKlass: String = null
+
   var trails: Map[String, Trail[IN, OUT]] = Map()
+
+  var templateFactory: TemplateFactory = null
 
   private[core] def withTrails(trails: JMap[_, _]): Frontier[IN, OUT] = {
     this.trails = trails
@@ -65,6 +75,13 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
 
   def initialize(): Future[Unit] = {
     info("initializing Frontier")
+
+    /**
+     * instantiate the template factory to use.  for now, we only allow one template factory.  in future, we may allow
+     * multiple template factories
+     */
+    val klass = Option(templateFactoryKlass).getOrElse(DEFAULT_TEMPLATE_FACTORY)
+    templateFactory = Class.forName(klass).newInstance().asInstanceOf[TemplateFactory]
 
     // territories need to be initialized PRIOR to initializing the decorators
     eachTerritory(_.initialize(this)).map {
