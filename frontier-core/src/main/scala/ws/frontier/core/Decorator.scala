@@ -75,12 +75,12 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
     val actualContentType: String = response.getHeader(Decorator.CONTENT_TYPE)
     if (result && (contentType == null || contentType.equalsIgnoreCase(actualContentType)) == false) {
-      debug("content-type doesn't match defined content type")
+      trace("content-type doesn't match defined content type")
       result = false
     }
 
     if (result && request.getHeader(Decorator.DECORATOR_HEADER) != null) {
-      debug("decorator requests are not further decorated")
+      trace("decorator requests are not further decorated")
       result = false
     }
 
@@ -146,7 +146,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   def merge(response: Response, uriContexts: Future[Seq[(String, String)]]): Response = {
     if (options.cacheTemplates == false) {
-      updateTemplate()
+      updateTemplate().get()
     }
 
     val headerContexts: Seq[(String, String)] = getHeaderContexts(response)
@@ -241,9 +241,9 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 
   def updateTemplate[OUT, IN](): Future[Unit] = {
     fetchTemplateSource().map {
-      hbs => {
-        warn("loaded template, %s, from trail [id: %s]" format(uri, trailId))
-        template = Option(compileTemplate(hbs))
+      text => {
+        info("loaded template from %s" format (uri))
+        template = Option(compileTemplate(text))
       }
     }
   }

@@ -9,7 +9,8 @@ object SampleApp {
     FrontierApp.main(Array(
       "--config",
       "dev.json",
-      "--banner"
+      "--banner",
+      "--no-cache"
     ))
   }
 }
