@@ -80,7 +80,7 @@ class HttpProxyTrail extends Trail[Request, Response] with HttpCodecBuilder {
    */
   def apply(request: Request): Option[Future[Response]] = {
     if (matches(request)) {
-      debug("%s %s", request.getMethod(), request.getUri())
+      trace("%s %s", request.getMethod(), request.getUri())
       request.removeHeader("host")
       request.addHeader("host", host)
       Some(service(request))
