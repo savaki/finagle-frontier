@@ -51,7 +51,7 @@ object FrontierApp {
 
     var frontierOptions = FrontierOptions()
     if (cli.hasOption("no-cache")) {
-      frontierOptions = frontierOptions.copy(cacheTemplates = false)
+      frontierOptions = frontierOptions.copy(_cacheTemplates = Some(false))
     }
 
     frontier.initialize(frontierOptions)

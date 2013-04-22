@@ -4,20 +4,23 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.File
 import java.net.URL
-import ws.frontier.core.{Frontier, Trail}
+import ws.frontier.core.{FrontierOptions, Frontier, Trail}
 
 /**
  * @author matt
  */
 
 class FrontierMapper {
-  private[converter] val trail: TrailConverter = new TrailConverter
+  private[converter] val trail = new TrailConverter
+
+  private[converter] val frontierOptions = new FrontierOptionsConverter
 
   private[this] val mapper = {
     val m = new ObjectMapper
 
     val module = new SimpleModule
     module.addDeserializer(classOf[Trail[_, _]], trail)
+    module.addDeserializer(classOf[FrontierOptions], frontierOptions)
     m.registerModule(module)
 
     m

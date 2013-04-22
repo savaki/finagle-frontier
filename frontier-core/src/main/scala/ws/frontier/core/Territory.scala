@@ -12,7 +12,7 @@ import ws.frontier.core.util.{Logging, Banner}
 /**
  * @author matt.ho@gmail.com
  */
-class Territory[IN, OUT] extends Logging {
+class Territory[IN, OUT] extends HttpCodecBuilder with Logging {
   @BeanProperty
   var port: Int = 9080
 
@@ -42,9 +42,10 @@ class Territory[IN, OUT] extends Logging {
     trail.start(registry).map {
       unit =>
         val httpTrail: Trail[Request, Response] = trail.asInstanceOf[Trail[Request, Response]]
+        val http: Http = buildCodec(registry.options)
         server = ServerBuilder()
           .name("Frontier-%s" format port)
-          .codec(RichHttp[Request](Http()))
+          .codec(RichHttp[Request](http))
           .bindTo(new InetSocketAddress(port))
           .build(new TrailService[Request, Response](httpTrail))
         port

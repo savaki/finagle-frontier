@@ -21,9 +21,11 @@ trait Registry[IN, OUT] {
   def trail(id: String = null): Option[Trail[IN, OUT]]
 
   def templateFactories: Array[TemplateFactory]
+
+  def options: FrontierOptions
 }
 
-class EmptyRegistry[IN, OUT] extends Registry[IN, OUT] {
+class EmptyRegistry[IN, OUT](val options: FrontierOptions = FrontierOptions()) extends Registry[IN, OUT] {
   def decorator(name: String): Option[Decorator] = None
 
   def trail(id: String): Option[Trail[IN, OUT]] = {

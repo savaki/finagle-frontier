@@ -25,9 +25,13 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   @BeanProperty
   var templateFactoriesKlass: Array[String] = null
 
+  @BeanProperty
+  var options: FrontierOptions = null
+
   var trails: Map[String, Trail[IN, OUT]] = Map()
 
   var templateFactories: Array[TemplateFactory] = null
+
 
   private[core] def withTrails(trails: JMap[_, _]): Frontier[IN, OUT] = {
     this.trails = trails
@@ -74,6 +78,9 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   }
 
   def initialize(options: FrontierOptions): Future[Unit] = {
+    this.options = Option(this.options)
+      .getOrElse(FrontierOptions()) // ensures we have a non-null FrontierOptions value
+      .zip(options) // allow the provided options to override any values we may be using
 
     def initializeTemplateFactories() {
       /**
@@ -119,4 +126,4 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
   }
 }
 
-case class FrontierOptions(cacheTemplates: Boolean = true)
+

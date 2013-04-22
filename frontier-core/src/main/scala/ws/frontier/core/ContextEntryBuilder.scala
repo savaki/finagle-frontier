@@ -58,7 +58,7 @@ case class UriContext(name: String, uri: String, timeout: Long) {
 
   def apply(trail: Trail[Request, Response]): Future[(String, String)] = {
     val request = Request(uri)
-    request.addHeader(Decorator.DECORATOR_HEADER, "true") // marker to indicate that this is a decoration request
+    request.addHeader(Decorator.X_DECORATOR, "true") // marker to indicate that this is a decoration request
 
     trail.apply(request).get.within(Timer, duration).map {
       response => name -> response.getContentString()

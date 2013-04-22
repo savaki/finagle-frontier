@@ -79,7 +79,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
       result = false
     }
 
-    if (result && request.getHeader(Decorator.DECORATOR_HEADER) != null) {
+    if (result && request.getHeader(Decorator.X_DECORATOR) != null) {
       trace("decorator requests are not further decorated")
       result = false
     }
@@ -129,7 +129,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
   }
 
   def isExcluded(request: Request): Boolean = {
-    if (request.getHeader(Decorator.DECORATOR_HEADER) != null) {
+    if (request.getHeader(Decorator.X_DECORATOR) != null) {
       return true
     }
 
@@ -157,6 +157,7 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
     val bytes: Array[Byte] = html.getBytes("UTF-8")
     response.removeHeader("Content-Length")
     response.addHeader("Content-Length", bytes.length.toString)
+    response.removeHeader(Decorator.IF_MODIFIED_SINCE)
     response.setContentString(html)
     response
   }
@@ -252,7 +253,9 @@ class Decorator extends Filter[Request, Response, Request, Response] with Loggin
 object Decorator {
   val CONTENT_TYPE = "Content-Type"
 
-  val DECORATOR_HEADER = "X-Decorator"
+  val X_DECORATOR = "X-Decorator"
+
+  val IF_MODIFIED_SINCE = "If-Modified-Since"
 }
 
 
