@@ -167,7 +167,7 @@ class HttpProxyTrail extends Trail[Request, Response] with HttpCodecBuilder {
    */
   protected def buildBaseService(options: FrontierOptions): Service[Request, Response] = {
     val builder = ClientBuilder()
-      .codec(RichHttp[Request](buildCodec(options)))
+      .codec(RichHttp[Request](buildHttpCodec(options)))
       .hosts(hosts.mkString(","))
       .timeout(options.timeout.seconds)
       .tcpConnectTimeout(options.tcpConnectTimeout.seconds)

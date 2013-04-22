@@ -42,7 +42,7 @@ class Territory[IN, OUT] extends HttpCodecBuilder with Logging {
     trail.start(registry).map {
       unit =>
         val httpTrail: Trail[Request, Response] = trail.asInstanceOf[Trail[Request, Response]]
-        val http: Http = buildCodec(registry.options)
+        val http: Http = buildHttpCodec(registry.options)
         server = ServerBuilder()
           .name("Frontier-%s" format port)
           .codec(RichHttp[Request](http))

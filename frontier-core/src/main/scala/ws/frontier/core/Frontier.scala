@@ -65,11 +65,19 @@ class Frontier[IN, OUT] extends Registry[IN, OUT] with Logging {
    */
   def banner(log: Banner) {
     log("Frontier started at %s" format (new DateTime().toString("MM/dd/yyyy HH:mm:ss")))
+
+    log()
+    log("Options:")
+    log.child {
+      options.banner(log)
+    }
+
     log()
     log("Territories:")
     log.child {
       territories.foreach(_.banner(log))
     }
+
     log()
     log("Decorators:")
     log.child {

@@ -20,6 +20,7 @@ case class VelocityTemplate(underlying: VTemplate) extends Template {
 }
 
 class VelocityTemplateFactory extends TemplateFactory {
+  private[this] val runtimeServices: RuntimeServices = RuntimeSingleton.getRuntimeServices
 
   /**
    * @return the unique name of this template factory e.g. pass-through, velocity
@@ -27,7 +28,6 @@ class VelocityTemplateFactory extends TemplateFactory {
   def name = "velocity"
 
   def compile(text: String): Template = {
-    val runtimeServices: RuntimeServices = RuntimeSingleton.getRuntimeServices
     val data: SimpleNode = runtimeServices.parse(text, text)
     val underlying = new VTemplate
     underlying.setRuntimeServices(runtimeServices)

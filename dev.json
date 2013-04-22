@@ -27,7 +27,7 @@
         {
           "locations": ["*", "/about/*"],
           "decorators": ["default"],
-          "hosts": ["www.loyal3.com:80"],
+          "hosts": ["localhost:80"],
           "tags": ["r194"]
         },
         {

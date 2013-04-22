@@ -29,6 +29,11 @@ case class FrontierOptions(
                             /**
                              * measured in mb
                              */
+                            _maxHeaderSize: Option[Int] = None,
+
+                            /**
+                             * measured in mb
+                             */
                             _maxRequestSize: Option[Int] = None,
 
                             /**
@@ -49,9 +54,11 @@ case class FrontierOptions(
 
   def decompressionEnabled: Boolean = _decompressionEnabled.getOrElse(true)
 
-  def maxRequestSize: Int = _maxRequestSize.getOrElse(10)
+  def maxHeaderSize: Int = _maxHeaderSize.getOrElse(1)
 
-  def maxResponseSize: Int = _maxResponseSize.getOrElse(10)
+  def maxRequestSize: Int = _maxRequestSize.getOrElse(25)
+
+  def maxResponseSize: Int = _maxResponseSize.getOrElse(25)
 
   def hostConnectionLimit: Int = _hostConnectionLimit.getOrElse(1024)
 
@@ -63,17 +70,17 @@ case class FrontierOptions(
     }
 
     val message = s"""
-      | ProxyTrail {
-      | timeout: ${timeout}s
-      | tcpConnectTimeout: ${tcpConnectTimeout} s
-      | hostConnectionLimit: ${numberFormat.format(hostConnectionLimit)}
-      | decompressionEnabled: ${decompressionEnabled}
-      | maxRequestSize: ${numberFormat.format(maxRequestSize)} M
-      | maxResponseSize: ${ numberFormat.format(maxResponseSize) } M
+      | timeout: ${ timeout }s
+      | tcpConnectTimeout:    ${ tcpConnectTimeout }s
+      | hostConnectionLimit:  ${ numberFormat.format(hostConnectionLimit) }
+      | decompressionEnabled: ${ decompressionEnabled }
+      | maxHeaderSize:   ${ numberFormat.format(maxHeaderSize) }M
+      | maxRequestSize:  ${ numberFormat.format(maxRequestSize) }M
+      | maxResponseSize: ${ numberFormat.format(maxResponseSize) }M
       |
     """.stripMargin
 
-    log("FrontierOptions: {")
+    log("{")
     log.child(log(message))
     log("}")
   }
