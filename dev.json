@@ -20,6 +20,7 @@
       ]
     }
   },
+
   "territories": [
     {
       "port": 9080,
@@ -27,7 +28,7 @@
         {
           "locations": ["*", "/about/*"],
           "decorators": ["default"],
-          "hosts": ["localhost:80"],
+          "hosts": ["www.loyal3.com:80"],
           "tags": ["r194"]
         },
         {
@@ -39,3 +40,4 @@
     }
   ]
 }
+
