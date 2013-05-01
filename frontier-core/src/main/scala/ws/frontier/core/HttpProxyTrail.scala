@@ -83,6 +83,7 @@ class HttpProxyTrail extends Trail[Request, Response] with HttpCodecBuilder {
       trace("%s %s", request.getMethod(), request.getUri())
       request.removeHeader("host")
       request.addHeader("host", host)
+      request.addHeader("X-Frontier", "0.1")
       Some(service(request))
 
     } else {
