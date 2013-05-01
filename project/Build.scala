@@ -54,4 +54,7 @@ object Build extends Build {
 
   lazy val test = Project(id = "test",
     base = file("frontier-test"))
+
+  lazy val integration = Project(id = "integration",
+    base = file("frontier-integration")) dependsOn (app, test % "compile->test")
 }

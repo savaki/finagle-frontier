@@ -32,7 +32,7 @@ class HttpProxyTrailTest extends TestSuite {
 
   "HttpProxyTrail" should "start up and respond to queries" in {
     val trail = new HttpProxyTrail
-    trail.hosts = Array("www.loyal3.com:80")
+    trail.hosts = Array("www.google.com:80")
     trail.initialize()
     trail.start(new EmptyRegistry[Request, Response]).get()
 
