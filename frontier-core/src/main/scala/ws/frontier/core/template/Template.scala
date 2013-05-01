@@ -1,6 +1,8 @@
 package ws.frontier.core.template
 
 import java.util.{Map => JMap}
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * @author matt
@@ -33,11 +35,18 @@ class PassThroughTemplateFactory extends TemplateFactory {
    */
   def name = "default"
 
-  def compile(text: String): Template = new PassThroughTemplate
+  def compile(text: String): Template = new PassThroughTemplate(text)
 }
 
-class PassThroughTemplate extends Template {
+class PassThroughTemplate(template: String) extends Template {
   def apply(context: JMap[String, String]): String = {
-    context.get("content")
+    var result = template
+    context.foreach {
+      case (key, value) => {
+        val literal = "${%s}".format(key)
+        result = result.replaceAllLiterally(literal, value)
+      }
+    }
+    result
   }
 }

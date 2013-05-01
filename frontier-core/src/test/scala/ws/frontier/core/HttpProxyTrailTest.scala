@@ -12,6 +12,7 @@ class HttpProxyTrailTest extends TestSuite {
   val trail = {
     val t = new HttpProxyTrail
     t.locations = Array("/blog/*", "*.gif")
+    t.host = "localhost"
     t.initialize()
     t
   }

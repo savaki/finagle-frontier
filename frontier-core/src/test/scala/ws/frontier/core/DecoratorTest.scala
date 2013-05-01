@@ -15,7 +15,7 @@ class DecoratorTest extends TestSuite {
   val decorator = {
     val instance = new Decorator() {
       override def fetchTemplateSource(): Future[String] = {
-        Future.value( """<div>{{content}}</div>""")
+        Future.value( """<div>${content}</div>""")
       }
     }
     instance.initialize(new EmptyRegistry[Request, Response])
